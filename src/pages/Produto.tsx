@@ -1,11 +1,17 @@
 /* Página de detalhe do produto */
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ShoppingBag, Check, Send, ArrowLeft, Heart, Share2, ChevronLeft, ChevronRight } from "lucide-react";
+import { ShoppingBag, Check, Send, ArrowLeft, Heart, ChevronLeft, ChevronRight, Star, MessageSquareText } from "lucide-react";
+import { toast } from "sonner";
 import { useProduct } from "@/hooks/useProduct";
 import { useCart } from "@/contexts/CartContext";
 import { trackProductView } from "@/lib/analytics";
+import { useProductReviews, useCreateReview } from "@/hooks/useProductReviews";
 import CartDrawer from "@/components/CartDrawer";
+import StarRating from "@/components/StarRating";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 const Produto = () => {
   const { id } = useParams();
@@ -13,11 +19,19 @@ const Produto = () => {
   const { addItem, itemCount } = useCart();
 
   const { data: product, isLoading } = useProduct(id);
+  const { data: reviews = [] } = useProductReviews(id);
+  const createReview = useCreateReview();
+
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedImage, setSelectedImage] = useState(0);
   const [added, setAdded] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [liked, setLiked] = useState(false);
+
+  const [reviewName, setReviewName] = useState("");
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewHoverRating, setReviewHoverRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
 
   useEffect(() => {
     setSelectedSize(product?.sizes?.[0] || "");
@@ -43,6 +57,7 @@ const Produto = () => {
   }
 
   const images = product.images || [product.image];
+  const averageRating = reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
 
   const handleAdd = () => {
     addItem(product, selectedSize || undefined);
@@ -57,6 +72,26 @@ const Produto = () => {
 
   const nextImage = () => setSelectedImage((prev) => (prev + 1) % images.length);
   const prevImage = () => setSelectedImage((prev) => (prev - 1 + images.length) % images.length);
+
+  const handleSubmitReview = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (reviewRating === 0) {
+      toast.error("Selecione de 1 a 5 estrelas.");
+      return;
+    }
+    createReview.mutate(
+      { product_id: product.id, customer_name: reviewName, rating: reviewRating, comment: reviewComment },
+      {
+        onSuccess: () => {
+          toast.success("Avaliação enviada! Ela aparece no site após ser aprovada.");
+          setReviewName("");
+          setReviewRating(0);
+          setReviewComment("");
+        },
+        onError: () => toast.error("Não foi possível enviar sua avaliação. Tente novamente."),
+      }
+    );
+  };
 
   return (
     <main className="pt-20 min-h-screen">
@@ -151,6 +186,16 @@ const Produto = () => {
               {product.name}
             </h1>
 
+            {/* Nota média */}
+            {reviews.length > 0 && (
+              <div className="flex items-center gap-2 mb-3">
+                <StarRating value={averageRating} size={16} />
+                <span className="text-sm text-muted-foreground">
+                  {averageRating.toFixed(1)} ({reviews.length} avaliação{reviews.length > 1 ? "ões" : ""})
+                </span>
+              </div>
+            )}
+
             {/* Preço */}
             <p className="text-2xl md:text-3xl font-semibold text-primary mb-6">
               R$ {product.price.toFixed(2)}
@@ -238,6 +283,97 @@ const Produto = () => {
                   {info}
                 </p>
               ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ===== AVALIAÇÕES ===== */}
+        <div className="max-w-6xl mx-auto mt-16 pt-12 border-t border-border">
+          <div className="flex items-center gap-2 mb-8">
+            <MessageSquareText size={20} className="text-primary" />
+            <h2 className="font-serif text-2xl font-semibold text-foreground">Avaliações</h2>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            {/* Lista de avaliações aprovadas */}
+            <div className="space-y-6">
+              {reviews.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Ainda não há avaliações para este produto.</p>
+              ) : (
+                reviews.map((review) => (
+                  <div key={review.id} className="border-b border-border pb-6 last:border-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="font-medium text-sm">{review.customer_name}</p>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(review.created_at).toLocaleDateString("pt-BR")}
+                      </span>
+                    </div>
+                    <StarRating value={review.rating} size={14} className="mb-2" />
+                    {review.comment && (
+                      <p className="text-sm text-muted-foreground leading-relaxed">{review.comment}</p>
+                    )}
+                    {review.admin_reply && (
+                      <div className="mt-3 ml-4 pl-4 border-l-2 border-primary/30">
+                        <p className="text-xs font-medium text-primary mb-1">Resposta da loja</p>
+                        <p className="text-sm text-muted-foreground">{review.admin_reply}</p>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Formulário de nova avaliação */}
+            <div className="bg-card rounded-2xl border border-border p-6">
+              <h3 className="font-serif text-lg font-semibold mb-4">Deixe sua avaliação</h3>
+              <form onSubmit={handleSubmitReview} className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1.5 block">Nota</label>
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setReviewRating(star)}
+                        onMouseEnter={() => setReviewHoverRating(star)}
+                        onMouseLeave={() => setReviewHoverRating(0)}
+                        className="p-0.5"
+                        aria-label={`${star} estrela${star > 1 ? "s" : ""}`}
+                      >
+                        <Star
+                          size={24}
+                          className={
+                            star <= (reviewHoverRating || reviewRating)
+                              ? "text-primary fill-primary"
+                              : "text-muted-foreground/30"
+                          }
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1.5 block">Nome</label>
+                  <Input
+                    required
+                    value={reviewName}
+                    onChange={(e) => setReviewName(e.target.value)}
+                    placeholder="Seu nome"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1.5 block">Comentário</label>
+                  <Textarea
+                    rows={3}
+                    value={reviewComment}
+                    onChange={(e) => setReviewComment(e.target.value)}
+                    placeholder="Conte como foi sua experiência com o produto..."
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={createReview.isPending}>
+                  {createReview.isPending ? "Enviando..." : "Enviar avaliação"}
+                </Button>
+              </form>
             </div>
           </div>
         </div>

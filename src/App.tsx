@@ -19,6 +19,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProdutos from "./pages/admin/AdminProdutos";
 import AdminProdutoForm from "./pages/admin/AdminProdutoForm";
 import AdminPedidos from "./pages/admin/AdminPedidos";
+import AdminAvaliacoes from "./pages/admin/AdminAvaliacoes";
 import AdminChat from "./pages/admin/AdminChat";
 import AdminConteudo from "./pages/admin/AdminConteudo";
 import AdminMetricas from "./pages/admin/AdminMetricas";
@@ -57,6 +58,7 @@ const App = () => (
                 <Route path="produtos/novo" element={<AdminProdutoForm />} />
                 <Route path="produtos/:id/editar" element={<AdminProdutoForm />} />
                 <Route path="pedidos" element={<AdminPedidos />} />
+                <Route path="avaliacoes" element={<AdminAvaliacoes />} />
                 <Route path="chat" element={<AdminChat />} />
                 <Route path="conteudo" element={<AdminConteudo />} />
                 <Route path="metricas" element={<AdminMetricas />} />

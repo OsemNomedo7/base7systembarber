@@ -1,4 +1,4 @@
-/* Tipos da tabela orders (pedidos da loja) */
+/* Tipos das tabelas orders (pedidos) e product_reviews (avaliações) */
 export type OrderStatus = "novo" | "contatado" | "concluido" | "cancelado";
 
 export interface OrderItem {
@@ -19,6 +19,20 @@ export interface Order {
   items: OrderItem[];
   total: number;
   status: OrderStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ReviewStatus = "pendente" | "aprovada" | "rejeitada";
+
+export interface ProductReview {
+  id: string;
+  product_id: string;
+  customer_name: string;
+  rating: number;
+  comment: string | null;
+  status: ReviewStatus;
+  admin_reply: string | null;
   created_at: string;
   updated_at: string;
 }

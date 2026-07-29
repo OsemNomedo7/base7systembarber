@@ -7,16 +7,19 @@ import {
   FileText,
   BarChart3,
   MessageSquareText,
+  Star,
   LogOut,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUnreadChatCount } from "@/hooks/useAdminChat";
+import { useAdminReviews } from "@/hooks/useProductReviews";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
   { label: "Dashboard", path: "/admin", icon: LayoutDashboard, end: true },
   { label: "Produtos", path: "/admin/produtos", icon: ShoppingBag },
   { label: "Pedidos", path: "/admin/pedidos", icon: ClipboardList },
+  { label: "Avaliações", path: "/admin/avaliacoes", icon: Star },
   { label: "Chat", path: "/admin/chat", icon: MessageSquareText },
   { label: "Conteúdo", path: "/admin/conteudo", icon: FileText },
   { label: "Métricas", path: "/admin/metricas", icon: BarChart3 },
@@ -25,6 +28,8 @@ const navItems = [
 const AdminLayout = () => {
   const { signOut } = useAuth();
   const unreadChatCount = useUnreadChatCount();
+  const { data: reviews = [] } = useAdminReviews();
+  const pendingReviewsCount = reviews.filter((r) => r.status === "pendente").length;
 
   return (
     <div className="min-h-screen flex bg-muted/20">
@@ -51,6 +56,11 @@ const AdminLayout = () => {
               {label === "Chat" && unreadChatCount > 0 && (
                 <span className="ml-auto min-w-5 h-5 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center font-semibold">
                   {unreadChatCount}
+                </span>
+              )}
+              {label === "Avaliações" && pendingReviewsCount > 0 && (
+                <span className="ml-auto min-w-5 h-5 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center font-semibold">
+                  {pendingReviewsCount}
                 </span>
               )}
             </NavLink>

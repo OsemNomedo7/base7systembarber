@@ -1,11 +1,12 @@
 /* Resumo rápido do admin - números básicos, faturamento e visitas */
 import { Link } from "react-router-dom";
-import { ClipboardList, ShoppingBag, Eye, Wallet, MessageSquareText } from "lucide-react";
+import { ClipboardList, ShoppingBag, Eye, Wallet, MessageSquareText, Star } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { useOrders } from "@/hooks/useOrders";
 import { useProducts } from "@/hooks/useProducts";
 import { useAnalyticsEvents, aggregateVisitsByDay } from "@/hooks/useAnalytics";
 import { useUnreadChatCount } from "@/hooks/useAdminChat";
+import { useAdminReviews } from "@/hooks/useProductReviews";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 
@@ -18,6 +19,8 @@ const AdminDashboard = () => {
   const { data: products = [] } = useProducts(false);
   const { data: events = [] } = useAnalyticsEvents();
   const unreadChatCount = useUnreadChatCount();
+  const { data: reviews = [] } = useAdminReviews();
+  const pendingReviewsCount = reviews.filter((r) => r.status === "pendente").length;
 
   const today = new Date().toISOString().slice(0, 10);
   const visitsToday = events.filter((e) => e.event_type === "page_view" && e.created_at.startsWith(today)).length;
@@ -65,6 +68,12 @@ const AdminDashboard = () => {
       value: unreadChatCount,
       icon: MessageSquareText,
       link: "/admin/chat",
+    },
+    {
+      label: "Avaliações pendentes",
+      value: pendingReviewsCount,
+      icon: Star,
+      link: "/admin/avaliacoes",
     },
   ];
 

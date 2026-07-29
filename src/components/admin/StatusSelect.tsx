@@ -1,4 +1,4 @@
-/* Select de status compartilhado entre pedidos e agendamentos */
+/* Select de status dos pedidos */
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { OrderStatus } from "@/types/db";
 
