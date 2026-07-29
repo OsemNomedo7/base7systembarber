@@ -56,7 +56,7 @@ const Produto = () => {
     );
   }
 
-  const images = product.images || [product.image];
+  const images = product.images?.length ? product.images : [product.image];
   const averageRating = reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
 
   const handleAdd = () => {
