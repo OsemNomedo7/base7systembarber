@@ -1,0 +1,308 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* BASE7WEB - SYSTEM MODA - Design System
+   Paleta: Rosé, Nude, Branco, Dourado
+   Tipografia: Playfair Display (títulos) + Inter (corpo)
+*/
+
+@layer base {
+  :root {
+    /* Fundo com leve tom rosado */
+    --background: 340 30% 99%;
+    --foreground: 340 15% 18%;
+
+    --card: 340 40% 97%;
+    --card-foreground: 340 15% 18%;
+
+    --popover: 340 20% 99%;
+    --popover-foreground: 340 15% 18%;
+
+    /* Rosa como primary */
+    --primary: 340 55% 65%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Nude rosado como secondary */
+    --secondary: 340 30% 93%;
+    --secondary-foreground: 340 15% 25%;
+
+    /* Rosa claro como muted */
+    --muted: 340 50% 95%;
+    --muted-foreground: 340 15% 45%;
+
+    /* Rosé vibrante como accent */
+    --accent: 340 60% 92%;
+    --accent-foreground: 340 15% 18%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 340 25% 90%;
+    --input: 340 25% 90%;
+    --ring: 340 55% 65%;
+
+    --radius: 1rem;
+
+    /* Custom tokens - mais rosas */
+    --rose: 340 55% 92%;
+    --rose-deep: 340 60% 80%;
+    --rose-soft: 340 40% 96%;
+    --pink-glow: 340 70% 88%;
+    --nude: 20 30% 93%;
+    --gold: 36 45% 60%;
+    --gold-light: 36 50% 75%;
+    --gold-dark: 36 40% 45%;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 20 10% 10%;
+    --foreground: 20 20% 90%;
+    --card: 20 10% 14%;
+    --card-foreground: 20 20% 90%;
+    --popover: 20 10% 12%;
+    --popover-foreground: 20 20% 90%;
+    --primary: 36 45% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 20 15% 18%;
+    --secondary-foreground: 20 20% 90%;
+    --muted: 20 10% 18%;
+    --muted-foreground: 20 15% 60%;
+    --accent: 340 20% 20%;
+    --accent-foreground: 20 20% 90%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 20 10% 20%;
+    --input: 20 10% 20%;
+    --ring: 36 45% 60%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+  }
+}
+
+@layer components {
+  /* Botão hero com gradiente rosa-dourado */
+  .btn-hero {
+    @apply inline-flex items-center justify-center rounded-full px-8 py-3 text-sm font-medium
+           text-primary-foreground
+           transition-all duration-300 ease-out
+           hover:shadow-lg hover:scale-105;
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--rose-deep)), hsl(var(--gold)));
+    box-shadow: 0 4px 20px hsl(var(--primary) / 0.35);
+  }
+
+  .btn-hero:hover {
+    box-shadow: 0 8px 30px hsl(var(--primary) / 0.45);
+  }
+
+  /* Card com hover suave rosado */
+  .card-hover {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .card-hover:hover {
+    @apply -translate-y-2;
+    box-shadow: 0 15px 40px hsl(var(--primary) / 0.12), 0 5px 15px hsl(var(--rose-deep) / 0.08);
+  }
+
+  /* Gradiente dourado para textos */
+  .text-gradient-gold {
+    background: linear-gradient(135deg, hsl(var(--gold-dark)), hsl(var(--gold)), hsl(var(--gold-light)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Gradiente rosa para textos */
+  .text-gradient-rose {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--rose-deep)), hsl(var(--gold)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Seção com fundo rosé */
+  .section-rose {
+    background: linear-gradient(135deg, hsl(var(--rose)), hsl(var(--rose-soft)));
+  }
+
+  /* Seção com fundo nude */
+  .section-nude {
+    background: linear-gradient(135deg, hsl(var(--nude)), hsl(var(--rose-soft)));
+  }
+
+  /* Seção rosa mais intensa */
+  .section-pink {
+    background: linear-gradient(135deg, hsl(var(--pink-glow)), hsl(var(--rose)));
+  }
+
+  /* Decoração dourada-rosa */
+  .gold-divider {
+    @apply w-20 h-0.5 mx-auto;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary)), hsl(var(--gold)), hsl(var(--primary)), transparent);
+  }
+
+  /* Scroll suave global */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Shimmer rosa */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--primary) / 0.1) 25%,
+      hsl(var(--gold-light) / 0.15) 50%,
+      hsl(var(--primary) / 0.1) 75%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+
+  /* Glass effect rosado */
+  .glass {
+    background: hsl(var(--rose-soft) / 0.7);
+    backdrop-filter: blur(16px);
+    border: 1px solid hsl(var(--primary) / 0.1);
+  }
+
+  /* Pétala decorativa */
+  .petal {
+    @apply absolute rounded-full opacity-20;
+    background: radial-gradient(ellipse, hsl(var(--primary) / 0.3), transparent);
+  }
+
+  /* Glow rosa nos ícones */
+  .icon-glow {
+    @apply relative;
+  }
+  .icon-glow::after {
+    content: '';
+    @apply absolute inset-0 rounded-full;
+    background: radial-gradient(circle, hsl(var(--primary) / 0.15), transparent);
+    filter: blur(8px);
+    z-index: -1;
+  }
+}
+
+@layer utilities {
+  .animate-fade-up {
+    animation: fade-up 0.6s ease-out forwards;
+  }
+
+  .animate-fade-in-delay {
+    animation: fade-in 0.6s ease-out 0.2s forwards;
+    opacity: 0;
+  }
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  @keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 20px hsl(var(--primary) / 0.1); }
+    50% { box-shadow: 0 0 40px hsl(var(--primary) / 0.3); }
+  }
+
+  .animate-glow {
+    animation: glow-pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes slide-up-fade {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-slide-up {
+    animation: slide-up-fade 0.6s ease-out forwards;
+  }
+
+  @keyframes petal-fall {
+    0% { transform: translateY(-10%) rotate(0deg); opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.3; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  .animate-petal {
+    animation: petal-fall linear infinite;
+  }
+
+  @keyframes rose-glow {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.1); }
+  }
+
+  .animate-rose-glow {
+    animation: rose-glow 4s ease-in-out infinite;
+  }
+
+  @keyframes sparkle {
+    0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+    50% { opacity: 1; transform: scale(1) rotate(180deg); }
+  }
+
+  .animate-sparkle {
+    animation: sparkle 2s ease-in-out infinite;
+  }
+}
