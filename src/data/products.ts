@@ -13,6 +13,11 @@ export interface Product {
   is_active?: boolean;
   created_at?: string;
   updated_at?: string;
+  ncm?: string | null;
+  cfop?: string;
+  unidade_comercial?: string;
+  icms_origem?: string;
+  icms_situacao_tributaria?: string;
 }
 
 export const products: Product[] = [

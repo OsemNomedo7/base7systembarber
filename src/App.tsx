@@ -23,6 +23,15 @@ import AdminAvaliacoes from "./pages/admin/AdminAvaliacoes";
 import AdminChat from "./pages/admin/AdminChat";
 import AdminConteudo from "./pages/admin/AdminConteudo";
 import AdminMetricas from "./pages/admin/AdminMetricas";
+import AdminClientes from "./pages/admin/AdminClientes";
+import AdminClienteForm from "./pages/admin/AdminClienteForm";
+import AdminClienteDetalhe from "./pages/admin/AdminClienteDetalhe";
+import AdminEstoque from "./pages/admin/AdminEstoque";
+import AdminEntregas from "./pages/admin/AdminEntregas";
+import AdminEntregaForm from "./pages/admin/AdminEntregaForm";
+import AdminRelatorios from "./pages/admin/AdminRelatorios";
+import AdminPagamentos from "./pages/admin/AdminPagamentos";
+import AdminFiscal from "./pages/admin/AdminFiscal";
 
 const queryClient = new QueryClient();
 
@@ -57,7 +66,18 @@ const App = () => (
                 <Route path="produtos" element={<AdminProdutos />} />
                 <Route path="produtos/novo" element={<AdminProdutoForm />} />
                 <Route path="produtos/:id/editar" element={<AdminProdutoForm />} />
+                <Route path="estoque" element={<AdminEstoque />} />
                 <Route path="pedidos" element={<AdminPedidos />} />
+                <Route path="clientes" element={<AdminClientes />} />
+                <Route path="clientes/novo" element={<AdminClienteForm />} />
+                <Route path="clientes/:id" element={<AdminClienteDetalhe />} />
+                <Route path="clientes/:id/editar" element={<AdminClienteForm />} />
+                <Route path="entregas" element={<AdminEntregas />} />
+                <Route path="entregas/novo" element={<AdminEntregaForm />} />
+                <Route path="entregas/:id/editar" element={<AdminEntregaForm />} />
+                <Route path="relatorios" element={<AdminRelatorios />} />
+                <Route path="pagamentos" element={<AdminPagamentos />} />
+                <Route path="fiscal" element={<AdminFiscal />} />
                 <Route path="avaliacoes" element={<AdminAvaliacoes />} />
                 <Route path="chat" element={<AdminChat />} />
                 <Route path="conteudo" element={<AdminConteudo />} />

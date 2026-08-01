@@ -8,8 +8,9 @@ export function useProductMutations() {
 
   const createProduct = useMutation({
     mutationFn: async (product: Omit<Product, "id">) => {
-      const { error } = await supabase.from("products").insert(product);
+      const { data, error } = await supabase.from("products").insert(product).select("id").single();
       if (error) throw error;
+      return data as { id: string };
     },
     onSuccess: invalidate,
   });

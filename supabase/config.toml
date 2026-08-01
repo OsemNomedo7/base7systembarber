@@ -1,0 +1,7 @@
+project_id = "mxqkqestmwwofcuovzmo"
+
+# O Mercado Pago chama esta função diretamente (sem token do Supabase), então a
+# verificação de JWT padrão precisa ficar desligada só aqui. A segurança dessa
+# função vem da validação manual da assinatura HMAC (x-signature) dentro dela.
+[functions.mercadopago-webhook]
+verify_jwt = false

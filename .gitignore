@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Supabase CLI local cache (id do projeto, e-mail da conta, endereço do banco)
+supabase/.temp
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -25,7 +25,11 @@ const ImageUploader = ({ value, onChange, folder, label = "Imagem" }: ImageUploa
     }
 
     setUploading(true);
-    const path = `${folder}/${crypto.randomUUID()}-${file.name}`;
+    // Sanitiza o nome original (SEC-009): mantém só letras/números/._- para
+    // não permitir que caracteres como "/" escapem do prefixo de pasta
+    // pretendido dentro do bucket.
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const path = `${folder}/${crypto.randomUUID()}-${safeName}`;
     const { error } = await supabase.storage.from("media").upload(path, file);
     setUploading(false);
 
