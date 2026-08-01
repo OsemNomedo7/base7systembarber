@@ -269,7 +269,7 @@ const Produto = () => {
               className="btn-hero w-full flex items-center justify-center gap-2 py-3.5"
             >
               <Send size={18} />
-              Comprar agora via WhatsApp
+              COMPRAR
             </button>
 
             {/* Info extra */}
