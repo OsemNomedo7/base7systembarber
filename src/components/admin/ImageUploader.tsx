@@ -10,7 +10,7 @@ const MAX_SIZE_MB = 5;
 interface ImageUploaderProps {
   value: string;
   onChange: (url: string) => void;
-  folder: "products" | "services" | "content";
+  folder: "products" | "services" | "professionals" | "content";
   label?: string;
 }
 

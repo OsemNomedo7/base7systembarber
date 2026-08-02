@@ -431,6 +431,7 @@ Ordem recomendada por risco:
 | SEC-011 | 🔵 INFO | Arquivo solto/artefato de teste na raiz do repo | raiz do projeto | Aberta |
 | SEC-012 | 🔵 INFO | Dependências desatualizadas (`react-router-dom` + devDeps) | `package.json` | Aberta |
 | SEC-013 | 🔵 INFO | Sessão admin em localStorage (padrão SPA, sem achado adicional) | `src/lib/supabase.ts` | Informativo |
+| SEC-014 | 🟠 MEDIUM | Telefone pessoal dos profissionais legível por qualquer visitante anônimo | `0018_barber_catalog.sql` (policy `public read active professionals`) | ✅ Corrigida (`0022_professionals_phone_privacy.sql`) |
 
 ---
 
@@ -444,4 +445,104 @@ Ordem recomendada por risco:
 - Certificado digital/senha do Focus NFe — **arquiteturalmente fora do sistema Base7** (fica no painel deles).
 - Testes dinâmicos de XSS/injeção (nenhum payload foi de fato submetido; análise puramente estática).
 - Configuração de rate limiting / DDoS na camada Supabase/Vercel.
+
+---
+
+## Adendo — Domínio de agendamento (BASE7 System Barber, migração de domínio)
+
+**Data:** 2026-08-01
+**Escopo:** migrations `0018`–`0021` (`services`, `professionals`, `professional_services`,
+`professional_schedules`, `professional_time_off`, `appointments`, `testimonials`) e o
+código frontend que as consome. Revisão feita **durante o desenvolvimento** (não é uma
+auditoria posterior a um deploy) — aplica o mesmo padrão de rigor do audit original de
+2026-07-31 desde o desenho inicial, em vez de corrigir depois.
+
+### Modelo de ameaça aplicado (mesmo do SEC-001)
+
+O agendamento tem exatamente o mesmo risco estrutural que o checkout de e-commerce
+(SEC-001): um cliente malicioso pode tentar enviar preço, duração ou disponibilidade
+arbitrários. A defesa é a mesma receita já validada no `create_order`:
+
+| Risco | Mitigação | Onde |
+|---|---|---|
+| Cliente manda preço/duração do serviço | `create_appointment` (RPC `security definer`) relê `services.price`/`duration_minutes` do banco — o parâmetro de entrada nem existe | `0020_barber_appointments.sql` |
+| Cliente agenda fora do expediente do profissional | Validado dentro da mesma RPC contra `professional_schedules`, com guarda explícita contra o serviço "atravessar a meia-noite" (edge case corrigido nesta revisão antes do commit) | `0020_barber_appointments.sql` |
+| Dois agendamentos sobrepostos pro mesmo profissional (race condition) | **Exclusion constraint** do Postgres (`appointments_no_overlap`, `EXCLUDE USING gist`) — garantia de banco, não de aplicação; vale mesmo sob concorrência e independente do caminho de escrita (RPC ou `UPDATE` direto do admin) | `0020_barber_appointments.sql` |
+| Insert direto em `appointments`/`professional_schedules` via REST, contornando a RPC (mesmo path de ataque do SEC-001 original em `orders`) | Nenhuma policy pública de insert/select nessas tabelas — só `is_admin()`. A única forma de criar um agendamento é a RPC (que ignora RLS por ser `security definer`) | `0019_barber_schedules.sql`, `0020_barber_appointments.sql` |
+| Leitura da agenda/expediente por visitante anônimo (equivalente ao SEC-002 original) | `professional_schedules`/`professional_time_off`/`appointments` sem policy pública nenhuma — disponibilidade só é exposta via `get_available_slots()` (RPC), nunca por leitura direta da tabela | `0019_barber_schedules.sql` |
+| Depoimento publicado sem moderação | Mesma regra de `product_reviews`: insert público só aceito com `status = 'pendente'`; leitura pública só de `status = 'aprovada'` | `0021_testimonials.sql` |
+
+### Resultado
+
+Nenhum achado novo de severidade CRITICAL/HIGH — o domínio nasceu já aplicando as
+correções que o audit original (SEC-001/002/003) precisou descobrir depois. Um bug de
+lógica (janela de horário cruzando meia-noite indevidamente aceita) foi encontrado e
+corrigido em autorrevisão antes do primeiro commit da migration, não em produção.
+
+### Não verificado (mesmas ressalvas do audit original)
+
+Testes dinâmicos de exploração (payloads reais contra um projeto Supabase hospedado)
+não foram executados nesta revisão — análise estática de schema/RPC/RLS, como o audit
+original. Recomenda-se repetir os testes de SEC-051 (seção "Testes de segurança
+específicos" do prompt de migração) contra uma instalação real antes de ir para
+produção: tentar criar agendamento com profissional/serviço inexistente, horário
+passado, duração manipulada, e duas requisições concorrentes pro mesmo horário.
+
+---
+
+## Adendo 2 — Testes dinâmicos de exploração (FASE 8 / seção 51 do prompt de migração)
+
+**Data:** 2026-08-02
+**Tipo:** Dynamic Application Security Testing — ataques reais via HTTP contra o projeto
+Supabase de desenvolvimento (`psnebcbluanimlvivykc`), usando só a `anon key` pública
+(simulando um visitante sem nenhuma credencial), exatamente como pedido no Adendo 1.
+
+### Achado novo: SEC-014 — Telefone do profissional exposto publicamente
+
+RLS no Postgres é **por linha, não por coluna**: a policy `public read active
+professionals` (migration `0018`) libera a linha inteira de qualquer profissional
+ativo pra qualquer visitante anônimo — incluindo a coluna `phone`, que nunca é exibida
+em nenhuma tela do site (nem `Index.tsx`, nem `Agendar.tsx`), só existe para uso interno
+do admin.
+
+**Confirmado ao vivo antes da correção:**
+```
+GET /rest/v1/professionals?select=name,phone  (com anon key)
+→ [{"name":"Marcos Silva","phone":"5519999990001"}, {"name":"Rafael Souza","phone":"5519999990002"}]
+```
+
+Mesma classe de bug do SEC-002 original (policy pública ampla demais esquecendo uma
+coluna/tabela sensível), desta vez introduzida já na migração de domínio pra barbearia.
+
+**Severidade:** 🟠 MEDIUM (vazamento de PII de terceiro — dado pessoal do profissional,
+não do cliente/lojista; sem impacto financeiro direto).
+
+**Correção:** ver `SECURITY_REMEDIATION_REPORT.md` (SEC-014).
+
+### Testes executados (todos com `anon key`, sem nenhuma credencial adicional)
+
+| # | Categoria (seção 51) | Teste | Resultado |
+|---|---|---|---|
+| 1 | Agendamento | Conflito de horário (mesmo profissional/slot de um agendamento já existente) | ✅ Rejeitado — `"time slot is no longer available"` (exclusion constraint) |
+| 2 | Agendamento | Horário no passado (`2020-01-01`) | ✅ Rejeitado — `"invalid start time"` |
+| 3 | Agendamento | Profissional inexistente (UUID aleatório) | ✅ Rejeitado — `"professional not found"` |
+| 4 | Agendamento | Fora do expediente (domingo, barbearia fechada) | ✅ Rejeitado — `"requested time is outside professional working hours"` |
+| 5 | Agendamento | Leitura direta de `appointments`/`professional_schedules`/`professional_time_off` (agenda/expediente bruto) | ✅ Vazio — sem policy pública, só via RPC |
+| 6 | Agendamento | Profissional não presta o serviço | 🟡 Não reproduzido ao vivo — dados de seed têm os 2 profissionais prestando os 6 serviços; checagem confirmada só por leitura de código (`0020`, linha ~121) |
+| 7 | Pagamento | `POST /rest/v1/orders` direto (bypass de `create_order`) | ✅ Rejeitado — `42501 row-level security policy` |
+| 8 | Pagamento | `create_order` com `product_id` inexistente | ✅ Rejeitado — `"product not found"` |
+| 9 | Pagamento | Leitura direta de `orders`/`customers`/`mercadopago_credentials` | ✅ Vazio para todas — sem policy pública de select |
+| 10 | Administração | IDOR em `payment_webhook_events` (tabela interna de idempotência do webhook) | ✅ Vazio — admin only |
+| 11 | Administração | Leitura pública de `professionals` (telefone) | 🔴 **Vazava antes** → ✅ corrigido e revalidado (SEC-014) |
+
+Webhook do Mercado Pago (assinatura HMAC, replay, reconsulta da fonte de verdade) e
+Edge Functions administrativas (`*-save-credentials`, `focusnfe-*`) **não foram
+re-testadas dinamicamente** nesta rodada — dependem de credenciais reais do Mercado
+Pago/Focus NFe ainda não conectadas neste projeto de dev; a validação continua sendo
+só por leitura de código (já coberta no Adendo 1 e no corpo principal deste relatório).
+
+### Resultado
+
+Confirmado na prática que toda a defesa descrita no Adendo 1 se sustenta sob ataque
+real, com uma exceção corrigida nesta mesma rodada (SEC-014). Nenhum outro achado.
 - Política de expiração e revogação de refresh tokens do Supabase Auth.

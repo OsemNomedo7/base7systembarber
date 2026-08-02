@@ -1,4 +1,5 @@
-/* Popula o Supabase com dados fictícios de demonstração (produtos + conteúdo institucional).
+/* Popula o Supabase com dados fictícios de demonstração (produtos, serviços,
+ * profissionais e conteúdo institucional da Navalha Barbearia).
  * Rodar uma única vez, localmente:
  *   SUPABASE_SERVICE_ROLE_KEY=<sua-service-role-key> npm run seed
  * A service_role key nunca deve ir para .env.local nem ser commitada. */
@@ -23,52 +24,130 @@ if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-const homeHeroSlides = [
+const services = [
   {
-    image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1600&q=80",
-    subtitle: "Moda e beleza",
-    title: "SUA LOJA,",
-    highlight: "SEU SISTEMA",
-    description:
-      "Site, loja online e painel administrativo em uma única plataforma para o seu negócio de moda ou beleza.",
-    ctaLabel: "Ver produtos",
-    ctaLink: "/loja",
+    name: "Corte",
+    description: "Corte clássico ou moderno, na tesoura ou na máquina.",
+    price: 60,
+    duration_minutes: 30,
+    category: "Cabelo",
+    image: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&q=80",
+    is_active: true,
   },
   {
-    image: "https://images.unsplash.com/photo-1445205170230-053b83016050?w=1600&q=80",
-    subtitle: "Nova coleção",
-    title: "ESTILO",
-    highlight: "SEM LIMITES",
-    description:
-      "Peças selecionadas com curadoria para quem quer se vestir bem sem abrir mão da praticidade de comprar online.",
-    ctaLabel: "Explorar loja",
-    ctaLink: "/loja",
+    name: "Barba",
+    description: "Barba desenhada na navalha, com toalha quente e óleo finalizador.",
+    price: 50,
+    duration_minutes: 30,
+    category: "Barba",
+    image: "https://images.unsplash.com/photo-1567894340315-735d7c361db0?w=800&q=80",
+    is_active: true,
+  },
+  {
+    name: "Corte + Barba",
+    description: "O combo completo: corte e barba num único horário.",
+    price: 100,
+    duration_minutes: 60,
+    category: "Combo",
+    image: "https://images.unsplash.com/photo-1622287162716-f311baa1a2b8?w=800&q=80",
+    is_active: true,
+  },
+  {
+    name: "Degradê",
+    description: "Degradê na máquina com acabamento de precisão na navalha.",
+    price: 70,
+    duration_minutes: 45,
+    category: "Cabelo",
+    image: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&q=80",
+    is_active: true,
+  },
+  {
+    name: "Sobrancelha",
+    description: "Alinhamento e acabamento na navalha.",
+    price: 25,
+    duration_minutes: 15,
+    category: "Acabamento",
+    image: "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=800&q=80",
+    is_active: true,
+  },
+  {
+    name: "Platinado",
+    description: "Descoloração completa com tonalização.",
+    price: 180,
+    duration_minutes: 120,
+    category: "Química",
+    image: "https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=800&q=80",
+    is_active: true,
   },
 ];
 
-const homeInstitutional = {
-  title: "Mais do que uma loja, uma",
-  highlight: "experiência",
+const professionals = [
+  {
+    name: "Marcos Silva",
+    bio: "Especialista em degradê e barba na navalha.",
+    phone: "5519999990001",
+    photo: "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=600&q=80",
+    is_active: true,
+  },
+  {
+    name: "Rafael Souza",
+    bio: "Cortes clássicos, platinado e acabamento de precisão.",
+    phone: "5519999990002",
+    photo: "https://images.unsplash.com/photo-1601412436009-d964bd02edbc?w=600&q=80",
+    is_active: true,
+  },
+];
+
+/* weekday: 0 = domingo ... 6 = sábado (extract(dow)) */
+const weekdaySchedule = (weekdays: number[], start: string, end: string) =>
+  weekdays.map((weekday) => ({ weekday, start_time: start, end_time: end, is_active: true }));
+
+const homeHero = {
+  image: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1600&q=80",
+  subtitle: "Barbearia",
+  title: "CORTE E BARBA,",
+  highlight: "COM HORA MARCADA",
+  description: "Agende em segundos, escolha seu barbeiro e chegue na hora certa. Sem fila, sem espera.",
+  ctaLabel: "Agendar horário",
+  ctaLink: "/agendar",
+};
+
+const homeAbout = {
+  title: "Mais que um corte, um",
+  highlight: "ofício",
   description:
-    "Com o BASE7WEB System Moda, sua loja ganha um site profissional, catálogo online com carrinho de compras e um painel simples para gerenciar tudo — produtos, pedidos, conteúdo e métricas.",
+    "Na Navalha, cada atendimento é feito com precisão de navalha e atenção aos detalhes — do primeiro corte ao acabamento final.",
 };
 
 const sobrePage = {
   heroTitle: "Nossa",
   heroHighlight: "História",
-  historiaTitle: "Sobre o",
-  historiaHighlight: "BASE7WEB System Moda",
+  historiaTitle: "Sobre a",
+  historiaHighlight: "Navalha Barbearia",
   paragraphs: [
-    "Este é um ambiente de demonstração do BASE7WEB System Moda, uma plataforma completa para lojas de moda e beleza apresentarem seu catálogo, receberem pedidos online e gerenciarem tudo por um painel administrativo próprio.",
-    "Cada loja que adota o sistema personaliza produtos, textos, imagens e número de WhatsApp direto pelo painel — sem depender de um desenvolvedor para cada ajuste.",
+    "Este é um ambiente de demonstração do BASE7 System Barber, uma plataforma completa para barbearias apresentarem seus serviços, receberem agendamentos online e gerenciarem tudo por um painel administrativo próprio.",
+    "Cada barbearia que adota o sistema personaliza serviços, profissionais, textos, imagens e número de WhatsApp direto pelo painel — sem depender de um desenvolvedor para cada ajuste.",
   ],
-  missao:
-    "Dar a lojas de moda e beleza uma presença digital profissional, com catálogo online confiável e fácil de gerenciar.",
-  visao:
-    "Ser a plataforma de referência para pequenos e médios negócios de moda que querem vender online sem complicação.",
-  valores:
-    "Simplicidade, confiabilidade e cuidado com os detalhes que fazem a diferença no dia a dia de quem vende.",
+  missao: "Oferecer um atendimento de barbearia com precisão de ofício e agendamento sem complicação.",
+  visao: "Ser a barbearia de referência do bairro, onde cada cliente sai satisfeito com o resultado.",
+  valores: "Pontualidade, precisão e cuidado com os detalhes que fazem a diferença no resultado final.",
 };
+
+const brandInfo = {
+  name: "Navalha Barbearia",
+  tagline: "Corte, barba e acabamento com precisão de navalha.",
+  instagramUrl: "https://instagram.com",
+  address: "Rua Exemplo, 123 — Centro",
+  hoursLines: ["Segunda a Sexta: 9h às 19h", "Sábado: 9h às 16h", "Domingo: Fechado"],
+};
+
+const galleryImages = [
+  "https://images.unsplash.com/photo-1622287162716-f311baa1a2b8?w=1200&q=80",
+  "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&q=80",
+  "https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=800&q=80",
+  "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&q=80",
+  "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=800&q=80",
+];
 
 async function seed() {
   console.log(`Inserindo ${products.length} produtos...`);
@@ -77,11 +156,45 @@ async function seed() {
     .insert(products.map(({ id: _id, ...rest }) => rest));
   if (productsError) throw productsError;
 
+  console.log(`Inserindo ${services.length} serviços...`);
+  const { data: insertedServices, error: servicesError } = await supabase
+    .from("services")
+    .insert(services)
+    .select("id, name");
+  if (servicesError) throw servicesError;
+
+  console.log(`Inserindo ${professionals.length} profissionais...`);
+  const { data: insertedProfessionals, error: professionalsError } = await supabase
+    .from("professionals")
+    .insert(professionals)
+    .select("id, name");
+  if (professionalsError) throw professionalsError;
+
+  console.log("Associando profissionais aos serviços...");
+  const professionalServices = insertedProfessionals!.flatMap((professional) =>
+    insertedServices!.map((service) => ({ professional_id: professional.id, service_id: service.id }))
+  );
+  const { error: psError } = await supabase.from("professional_services").insert(professionalServices);
+  if (psError) throw psError;
+
+  console.log("Configurando expediente dos profissionais (Seg-Sex 9h-19h, Sáb 9h-16h)...");
+  const schedules = insertedProfessionals!.flatMap((professional) => [
+    ...weekdaySchedule([1, 2, 3, 4, 5], "09:00:00", "19:00:00").map((s) => ({
+      ...s,
+      professional_id: professional.id,
+    })),
+    ...weekdaySchedule([6], "09:00:00", "16:00:00").map((s) => ({ ...s, professional_id: professional.id })),
+  ]);
+  const { error: schedulesError } = await supabase.from("professional_schedules").insert(schedules);
+  if (schedulesError) throw schedulesError;
+
   console.log("Inserindo conteúdo institucional...");
   const { error: contentError } = await supabase.from("site_content").insert([
-    { key: "home_hero_slides", value: homeHeroSlides },
-    { key: "home_institutional", value: homeInstitutional },
+    { key: "home_hero", value: homeHero },
+    { key: "home_about", value: homeAbout },
     { key: "sobre_page", value: sobrePage },
+    { key: "brand_info", value: brandInfo },
+    { key: "gallery_images", value: galleryImages },
   ]);
   if (contentError) throw contentError;
 

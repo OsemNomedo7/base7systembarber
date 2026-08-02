@@ -8,7 +8,9 @@ import { supabase } from "@/lib/supabase";
 import { useWhatsappNumber } from "@/hooks/useWhatsappNumber";
 import { usePublicDeliveryMethods } from "@/hooks/useDeliveryMethods";
 import { useCep } from "@/hooks/useCep";
+import { useSiteContent } from "@/hooks/useSiteContent";
 import { matchDeliveryMethods, type MatchedDeliveryMethod } from "@/lib/deliveryMatching";
+import type { BrandInfo } from "@/types/content";
 import {
   useCreatePixPayment,
   useCreateCardPayment,
@@ -24,6 +26,7 @@ interface CartDrawerProps {
 const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
   const { items, updateQuantity, removeItem, total: subtotal, clearCart } = useCart();
   const whatsappNumber = useWhatsappNumber();
+  const { data: brand } = useSiteContent<BrandInfo>("brand_info");
   const [step, setStep] = useState<"cart" | "checkout" | "pix" | "cartao">("cart");
   const [form, setForm] = useState({
     name: "",
@@ -155,7 +158,7 @@ const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
     };
 
     return [
-      `🛍️ *PEDIDO - BASE7WEB SYSTEM MODA*`,
+      `🛍️ *PEDIDO - ${(brand?.name || "NAVALHA BARBEARIA").toUpperCase()}*`,
       ``,
       `📦 *Produtos:*`,
       itemsList,

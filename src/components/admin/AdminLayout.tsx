@@ -2,6 +2,9 @@
 import { NavLink, Outlet } from "react-router-dom";
 import {
   LayoutDashboard,
+  CalendarDays,
+  Scissors,
+  UserCog,
   ShoppingBag,
   Package,
   ClipboardList,
@@ -19,10 +22,15 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useUnreadChatCount } from "@/hooks/useAdminChat";
 import { useAdminReviews } from "@/hooks/useProductReviews";
+import { useAdminTestimonials } from "@/hooks/useTestimonials";
 import { Button } from "@/components/ui/button";
+import BrandWordmark from "@/components/BrandWordmark";
 
 const navItems = [
   { label: "Dashboard", path: "/admin", icon: LayoutDashboard, end: true },
+  { label: "Agenda", path: "/admin/agenda", icon: CalendarDays },
+  { label: "Serviços", path: "/admin/servicos", icon: Scissors },
+  { label: "Profissionais", path: "/admin/profissionais", icon: UserCog },
   { label: "Produtos", path: "/admin/produtos", icon: ShoppingBag },
   { label: "Estoque", path: "/admin/estoque", icon: Package },
   { label: "Pedidos", path: "/admin/pedidos", icon: ClipboardList },
@@ -41,13 +49,16 @@ const AdminLayout = () => {
   const { signOut } = useAuth();
   const unreadChatCount = useUnreadChatCount();
   const { data: reviews = [] } = useAdminReviews();
-  const pendingReviewsCount = reviews.filter((r) => r.status === "pendente").length;
+  const { data: testimonials = [] } = useAdminTestimonials();
+  const pendingReviewsCount =
+    reviews.filter((r) => r.status === "pendente").length +
+    testimonials.filter((t) => t.status === "pendente").length;
 
   return (
     <div className="min-h-screen flex bg-muted/20">
       <aside className="w-60 shrink-0 border-r border-border bg-background flex flex-col">
         <div className="flex items-center justify-center p-4 border-b border-border">
-          <img src="/imagem/logo-base7web.png" alt="BASE7WEB System Moda" className="w-full max-w-[160px]" />
+          <BrandWordmark className="text-xl" />
         </div>
         <nav className="flex-1 p-3 space-y-1">
           {navItems.map(({ label, path, icon: Icon, end }) => (

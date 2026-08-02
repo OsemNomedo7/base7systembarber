@@ -23,6 +23,7 @@
 | SEC-011 | Arquivo solto na raiz do repo | ✅ **CORRIGIDA** |
 | SEC-012 | Dependências desatualizadas | 🟡 **PARCIALMENTE CORRIGIDA** (ver nota) |
 | SEC-013 | Sessão admin em localStorage | 🔵 Informativo, sem ação necessária |
+| SEC-014 | Telefone do profissional exposto a visitante anônimo | ✅ **CORRIGIDA E VALIDADA** |
 
 ---
 
@@ -228,3 +229,77 @@ Nenhuma ação necessária — é o comportamento padrão do `supabase-js` para 
 ## Declaração final
 
 O sistema está **significativamente mais seguro** do que estava na auditoria original — em particular, a falha crítica de manipulação de preço (SEC-001) foi eliminada e validada com testes de exploração reais, não apenas revisão de código. Não declaro o sistema "100% seguro": os riscos residuais acima são reais e devem ser monitorados, e esta foi uma revisão de código + testes funcionais, não um penetration test completo com ferramentas dinâmicas (ZAP/Burp) nem uma auditoria de infraestrutura de produção (que ainda não existe, pois nada foi deployado).
+
+---
+
+## Adendo — Migração para BASE7 System Barber (2026-08-01)
+
+Diferente do restante deste relatório (que documenta correções de falhas encontradas),
+esta seção documenta uma **adição de domínio**, não uma remediação: o módulo de
+agendamento (serviços, profissionais, agenda) foi desenhado desde o início replicando
+os mesmos padrões já validados aqui (RPC `security definer` recalculando tudo no
+backend, RLS restrita a `is_admin()`, sem policy pública de insert/select fora das
+RPCs). Ver o adendo equivalente em `SECURITY_AUDIT_REPORT.md` para o detalhamento
+risco-a-risco.
+
+**Única correção feita durante o próprio desenvolvimento** (não em produção, antes do
+commit da migration): a validação de horário de `create_appointment` comparava só o
+horário-do-dia contra o expediente do profissional, o que permitia — em tese — um
+serviço que cruzasse a meia-noite ser aceito indevidamente se o horário final
+"coincidisse" numericamente com um valor menor que o fim do expediente. Corrigido
+adicionando uma checagem explícita de que início e fim do agendamento caem no mesmo
+dia local antes de validar contra o expediente.
+
+**Não testado nesta rodada** (mesma ressalva das seções anteriores: sem projeto
+Supabase de produção linkado ainda): checkout de agendamento de ponta a ponta contra
+um banco real, teste de concorrência real (duas requisições simultâneas pro mesmo
+horário) pra confirmar que a exclusion constraint rejeita a segunda. Recomendado antes
+de liberar `/agendar` pra uma barbearia real.
+
+---
+
+## SEC-014 — Telefone do profissional exposto a visitante anônimo (2026-08-02)
+
+**Causa raiz:** a policy `public read active professionals` (migration `0018`) libera
+a linha inteira de qualquer profissional ativo pra leitura anônima — RLS é por linha,
+não por coluna, então a coluna `phone` (dado pessoal do barbeiro, nunca exibido em
+nenhuma tela do site) saía junto de `name`/`photo`/`bio`. Achado durante os testes
+dinâmicos da FASE 8 (ver Adendo 2 em `SECURITY_AUDIT_REPORT.md`), confirmado com uma
+chamada real usando só a `anon key` pública.
+
+**Correção:**
+- `supabase/migrations/0022_professionals_phone_privacy.sql` (novo) — remove a policy
+  pública de `professionals` inteiramente (mesmo padrão já usado pra esconder
+  `professional_schedules`/`professional_time_off`, migration `0019`) e cria duas
+  funções `security definer` (`get_public_professionals`,
+  `get_public_professionals_for_service`) que devolvem só `id`/`name`/`photo`/`bio`.
+  Acesso do admin (policy `admin manage professionals`, RLS `is_admin()`) não muda em
+  nada — continua com leitura/escrita completa da tabela, incluindo `phone`.
+- `src/types/barber.ts` — novo tipo `PublicProfessional` (subconjunto seguro de `Professional`).
+- `src/hooks/usePublicProfessionals.ts` (novo) e `src/hooks/useServiceProfessionals.ts`
+  (reescrito) — os dois únicos pontos do **site público** que liam profissionais
+  (`Index.tsx` e o fluxo de agendamento em `Agendar.tsx`) passam a chamar as novas RPCs
+  em vez de `select("*")` na tabela. Pontos do admin (`AdminAgenda.tsx`,
+  `AdminProfissionais.tsx`, `AdminProfissionalForm.tsx`) não foram tocados — continuam
+  lendo a tabela diretamente, protegidos por `is_admin()`.
+- `src/components/ProfessionalCard.tsx` — prop tipada como `PublicProfessional` em vez
+  de `Professional`.
+
+**Testes executados (com `anon key` pública, aplicados após o usuário rodar a migration
+no SQL Editor do projeto de dev):**
+
+| Teste | Resultado |
+|---|---|
+| `GET /rest/v1/professionals?select=name,phone` direto | ✅ **Antes:** vazava telefone de ambos os profissionais → **Depois:** `[]` (RLS nega) |
+| `rpc/get_public_professionals` | ✅ Devolve só `id`/`name`/`photo`/`bio`, sem `phone` |
+| `rpc/get_public_professionals_for_service` (filtrando por serviço) | ✅ Mesmo formato seguro, filtro por `service_id` funcionando |
+| `npx tsc --noEmit` após a troca dos hooks/tipos | ✅ Sem erros |
+| Home (`/`) e fluxo de agendamento (`/agendar`) no navegador, pós-correção | ✅ Sem regressão — cards de profissional e seleção de barbeiro continuam funcionando normalmente |
+
+**Resultado:** ✅ **CORRIGIDA E VALIDADA.**
+
+**Risco residual:** nenhum. O padrão (RLS zero + RPC `security definer` com colunas
+explícitas) é o mesmo já usado com sucesso pra `professional_schedules`/`get_available_slots`
+— recomendo revisar qualquer tabela nova que misture dado público com dado sensível na
+mesma linha com esse mesmo padrão desde o desenho, em vez de `select("*")` + policy
+ampla.

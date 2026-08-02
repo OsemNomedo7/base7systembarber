@@ -1,72 +1,81 @@
-/* Rodapé com contatos e redes sociais */
-import { Instagram, Phone, MapPin, Heart } from "lucide-react";
+/* Rodapé com contatos e redes sociais - dados vêm do CMS (brand_info) */
+import { Instagram, Phone, MapPin, Clock } from "lucide-react";
+import { useSiteContent } from "@/hooks/useSiteContent";
+import { useWhatsappNumber } from "@/hooks/useWhatsappNumber";
+import type { BrandInfo } from "@/types/content";
+import BrandWordmark from "@/components/BrandWordmark";
 
 const Footer = () => {
-  return (
-    <footer className="section-rose border-t border-primary/10 relative overflow-hidden">
-      {/* Decoração */}
-      <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 left-0 w-32 h-32 bg-pink-glow/10 rounded-full blur-3xl" />
+  const { data: brand } = useSiteContent<BrandInfo>("brand_info");
+  const whatsappNumber = useWhatsappNumber();
 
+  const phoneDisplay = whatsappNumber
+    ? whatsappNumber.replace(/^55/, "").replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3")
+    : "";
+
+  return (
+    <footer className="border-t border-border relative overflow-hidden bg-card">
       <div className="container mx-auto px-4 py-12 relative">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Marca */}
           <div>
-            <img
-              src="/imagem/logo-base7web.png"
-              alt="BASE7WEB System Moda"
-              className="h-10 md:h-12 w-auto object-contain mb-4"
-            />
-
+            <BrandWordmark className="text-lg mb-4 block" />
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Moda e beleza em um só lugar. Peças e produtos selecionados com carinho para você.
+              {brand?.tagline || "Corte, barba e acabamento com precisão de navalha."}
             </p>
           </div>
 
           {/* Contato */}
           <div>
-            <h4 className="font-serif text-lg font-medium text-foreground mb-4">Contato</h4>
+            <h4 className="font-display text-lg font-medium text-foreground mb-4">Contato</h4>
             <div className="space-y-3 text-sm text-muted-foreground">
-              <a
-                href="https://wa.me/5511999999999"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 hover:text-primary transition-all duration-300 group"
-              >
-                <Phone size={16} className="group-hover:scale-110 transition-transform" />
-                (11) 99999-9999
-              </a>
+              {whatsappNumber && (
+                <a
+                  href={`https://wa.me/${whatsappNumber}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 hover:text-primary transition-all duration-300 group"
+                >
+                  <Phone size={16} className="group-hover:scale-110 transition-transform" />
+                  {phoneDisplay}
+                </a>
+              )}
               <div className="flex items-center gap-2">
                 <MapPin size={16} />
-                Em Breve...
+                {brand?.address || "Em breve"}
               </div>
-              <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 hover:text-primary transition-all duration-300 group"
-              >
-                <Instagram size={16} className="group-hover:scale-110 transition-transform" />
-                @base7web.moda
-              </a>
+              {brand?.instagramUrl && (
+                <a
+                  href={brand.instagramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 hover:text-primary transition-all duration-300 group"
+                >
+                  <Instagram size={16} className="group-hover:scale-110 transition-transform" />
+                  Instagram
+                </a>
+              )}
             </div>
           </div>
 
           {/* Horário */}
           <div>
-            <h4 className="font-serif text-lg font-medium text-foreground mb-4">Horário</h4>
+            <h4 className="font-display text-lg font-medium text-foreground mb-4 flex items-center gap-2">
+              <Clock size={16} />
+              Horário
+            </h4>
             <div className="space-y-2 text-sm text-muted-foreground">
-              <p>Segunda a Sexta: 9h - 19h</p>
-              <p>Sábado: 9h - 16h</p>
-              <p>Domingo: Fechado</p>
+              {(brand?.hoursLines?.length ? brand.hoursLines : ["Segunda a Sábado: 9h - 19h"]).map((line, i) => (
+                <p key={i}>{line}</p>
+              ))}
             </div>
           </div>
         </div>
 
         {/* Copyright */}
-        <div className="mt-10 pt-6 border-t border-primary/10 text-center">
-          <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-            Feito com <Heart size={14} className="text-primary fill-primary animate-pulse" /> BASE7WEB - SYSTEM MODA © {new Date().getFullYear()}
+        <div className="mt-10 pt-6 border-t border-border text-center">
+          <p className="text-xs text-muted-foreground">
+            © {new Date().getFullYear()} <BrandWordmark className="text-xs" /> — Todos os direitos reservados.
           </p>
         </div>
       </div>

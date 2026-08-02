@@ -1,12 +1,13 @@
-/* Header fixo com navegação e carrinho */
+/* Header fixo com navegação, carrinho e CTA de agendamento em destaque */
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, ShoppingBag, Sparkles } from "lucide-react";
+import { Menu, X, ShoppingBag, CalendarClock } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
+import BrandWordmark from "@/components/BrandWordmark";
 
 const navLinks = [
   { label: "Início", path: "/" },
-  { label: "Moda & Beleza", path: "/loja" },
+  { label: "Produtos", path: "/produtos" },
   { label: "Sobre", path: "/sobre" },
   { label: "Contato", path: "/contato" },
 ];
@@ -30,17 +31,12 @@ const Header = () => {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-300 ${
-        isTransparentHeader ? "bg-transparent" : "bg-background/80 backdrop-blur-xl border-b border-primary/10"
+        isTransparentHeader ? "bg-transparent" : "bg-background/85 backdrop-blur-xl border-b border-border"
       }`}
     >
       <div className="container mx-auto px-4 flex items-center justify-between h-16 md:h-20">
-        {/* Logo */}
         <Link to="/" className="flex items-center">
-          <img
-            src="/imagem/logo-base7web.png"
-            alt="BASE7WEB System Moda"
-            className="h-12 md:h-16 w-auto object-contain"
-          />
+          <BrandWordmark className="text-lg md:text-xl" />
         </Link>
 
         {/* Nav desktop */}
@@ -50,9 +46,7 @@ const Header = () => {
               key={link.path}
               to={link.path}
               className={`text-sm font-medium transition-all duration-300 relative hover:text-primary ${
-                location.pathname === link.path
-                  ? "text-primary"
-                  : "text-muted-foreground"
+                location.pathname === link.path ? "text-primary" : "text-muted-foreground"
               }`}
             >
               {link.label}
@@ -64,17 +58,26 @@ const Header = () => {
         </nav>
 
         {/* Ações */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3">
           <Link
-            to="/loja"
+            to="/produtos"
             className="relative p-2 text-foreground hover:text-primary transition-all duration-300 hover:scale-110"
+            aria-label="Produtos"
           >
             <ShoppingBag size={20} />
             {itemCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] flex items-center justify-center font-semibold animate-scale-in">
+              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] flex items-center justify-center font-semibold">
                 {itemCount}
               </span>
             )}
+          </Link>
+
+          <Link
+            to="/agendar"
+            className="hidden sm:inline-flex items-center gap-2 rounded-lg bg-primary text-primary-foreground px-5 py-2 text-xs font-medium uppercase tracking-wider transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
+          >
+            <CalendarClock size={14} />
+            Agendar
           </Link>
 
           <button
@@ -89,14 +92,14 @@ const Header = () => {
 
       {/* Menu mobile */}
       {isOpen && (
-        <nav className="md:hidden bg-background/95 backdrop-blur-xl border-t border-primary/10 animate-fade-up">
+        <nav className="md:hidden bg-background/95 backdrop-blur-xl border-t border-border animate-fade-up">
           <div className="container mx-auto px-4 py-4 flex flex-col gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
                 onClick={() => setIsOpen(false)}
-                className={`text-sm font-medium py-3 px-4 rounded-xl transition-all duration-300 ${
+                className={`text-sm font-medium py-3 px-4 rounded-lg transition-all duration-300 ${
                   location.pathname === link.path
                     ? "text-primary bg-primary/5"
                     : "text-muted-foreground hover:text-primary hover:bg-primary/5"
@@ -105,6 +108,14 @@ const Header = () => {
                 {link.label}
               </Link>
             ))}
+            <Link
+              to="/agendar"
+              onClick={() => setIsOpen(false)}
+              className="mt-2 inline-flex items-center justify-center gap-2 rounded-lg bg-primary text-primary-foreground px-4 py-3 text-sm font-medium uppercase tracking-wider"
+            >
+              <CalendarClock size={16} />
+              Agendar horário
+            </Link>
           </div>
         </nav>
       )}

@@ -9,10 +9,11 @@ import PublicLayout from "@/components/PublicLayout";
 import RequireAuth from "@/components/admin/RequireAuth";
 import AdminLayout from "@/components/admin/AdminLayout";
 import Index from "./pages/Index";
-import Loja from "./pages/Loja";
+import Produtos from "./pages/Produtos";
 import Produto from "./pages/Produto";
 import Sobre from "./pages/Sobre";
 import Contato from "./pages/Contato";
+import Agendar from "./pages/Agendar";
 import NotFound from "./pages/NotFound";
 import AdminLogin from "./pages/admin/Login";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -32,6 +33,11 @@ import AdminEntregaForm from "./pages/admin/AdminEntregaForm";
 import AdminRelatorios from "./pages/admin/AdminRelatorios";
 import AdminPagamentos from "./pages/admin/AdminPagamentos";
 import AdminFiscal from "./pages/admin/AdminFiscal";
+import AdminServicos from "./pages/admin/AdminServicos";
+import AdminServicoForm from "./pages/admin/AdminServicoForm";
+import AdminProfissionais from "./pages/admin/AdminProfissionais";
+import AdminProfissionalForm from "./pages/admin/AdminProfissionalForm";
+import AdminAgenda from "./pages/admin/AdminAgenda";
 
 const queryClient = new QueryClient();
 
@@ -46,10 +52,11 @@ const App = () => (
             <Routes>
               <Route element={<PublicLayout />}>
                 <Route path="/" element={<Index />} />
-                <Route path="/loja" element={<Loja />} />
+                <Route path="/produtos" element={<Produtos />} />
                 <Route path="/produto/:id" element={<Produto />} />
                 <Route path="/sobre" element={<Sobre />} />
                 <Route path="/contato" element={<Contato />} />
+                <Route path="/agendar" element={<Agendar />} />
                 <Route path="*" element={<NotFound />} />
               </Route>
 
@@ -63,6 +70,13 @@ const App = () => (
                 }
               >
                 <Route index element={<AdminDashboard />} />
+                <Route path="agenda" element={<AdminAgenda />} />
+                <Route path="servicos" element={<AdminServicos />} />
+                <Route path="servicos/novo" element={<AdminServicoForm />} />
+                <Route path="servicos/:id/editar" element={<AdminServicoForm />} />
+                <Route path="profissionais" element={<AdminProfissionais />} />
+                <Route path="profissionais/novo" element={<AdminProfissionalForm />} />
+                <Route path="profissionais/:id/editar" element={<AdminProfissionalForm />} />
                 <Route path="produtos" element={<AdminProdutos />} />
                 <Route path="produtos/novo" element={<AdminProdutoForm />} />
                 <Route path="produtos/:id/editar" element={<AdminProdutoForm />} />

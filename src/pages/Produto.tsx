@@ -7,6 +7,7 @@ import { useProduct } from "@/hooks/useProduct";
 import { useCart } from "@/contexts/CartContext";
 import { trackProductView } from "@/lib/analytics";
 import { useProductReviews, useCreateReview } from "@/hooks/useProductReviews";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import CartDrawer from "@/components/CartDrawer";
 import StarRating from "@/components/StarRating";
 import { Button } from "@/components/ui/button";
@@ -41,16 +42,18 @@ const Produto = () => {
     if (product) trackProductView(product.id);
   }, [product?.id]);
 
+  usePageTitle(product ? `${product.name} — Navalha Barbearia` : "Produto — Navalha Barbearia");
+
   if (isLoading) {
-    return <main className="pt-20 min-h-screen" />;
+    return <main className="pt-32 min-h-screen" />;
   }
 
   if (!product) {
     return (
-      <main className="pt-20 min-h-screen flex items-center justify-center">
+      <main className="pt-32 min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-muted-foreground mb-4">Produto não encontrado</p>
-          <Link to="/loja" className="btn-hero">Voltar à loja</Link>
+          <Link to="/produtos" className="btn-hero">Voltar aos produtos</Link>
         </div>
       </main>
     );
@@ -94,7 +97,7 @@ const Produto = () => {
   };
 
   return (
-    <main className="pt-20 min-h-screen">
+    <main className="pt-32 min-h-screen">
       {/* Breadcrumb */}
       <div className="container mx-auto px-4 py-4">
         <button
@@ -182,7 +185,7 @@ const Produto = () => {
             </span>
 
             {/* Nome */}
-            <h1 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-2">
+            <h1 className="font-display text-3xl md:text-4xl font-semibold text-foreground mb-2">
               {product.name}
             </h1>
 
@@ -240,7 +243,7 @@ const Produto = () => {
             <div className="flex gap-3 mb-4">
               <button
                 onClick={handleAdd}
-                className={`flex-1 py-3.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 transition-all duration-300 ${
+                className={`flex-1 py-3.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all duration-300 ${
                   added
                     ? "bg-[#25D366] text-primary-foreground scale-105"
                     : "border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
@@ -273,16 +276,14 @@ const Produto = () => {
             </button>
 
             {/* Info extra */}
-            <div className="mt-8 space-y-3">
-              {[
-                "✨ Produtos selecionados com carinho",
-                "🚚 Entrega ou retirada disponível",
-                "💳 Pix, Crédito ou Débito",
-              ].map((info) => (
-                <p key={info} className="text-xs text-muted-foreground flex items-center gap-2">
-                  {info}
-                </p>
-              ))}
+            <div className="mt-8 space-y-2 border-t border-border pt-4">
+              {["Produtos selecionados com cuidado", "Entrega ou retirada disponível", "Pix, crédito ou débito"].map(
+                (info) => (
+                  <p key={info} className="text-xs text-muted-foreground">
+                    {info}
+                  </p>
+                )
+              )}
             </div>
           </div>
         </div>
@@ -291,7 +292,7 @@ const Produto = () => {
         <div className="max-w-6xl mx-auto mt-16 pt-12 border-t border-border">
           <div className="flex items-center gap-2 mb-8">
             <MessageSquareText size={20} className="text-primary" />
-            <h2 className="font-serif text-2xl font-semibold text-foreground">Avaliações</h2>
+            <h2 className="font-display text-2xl font-semibold text-foreground">Avaliações</h2>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
@@ -325,7 +326,7 @@ const Produto = () => {
 
             {/* Formulário de nova avaliação */}
             <div className="bg-card rounded-2xl border border-border p-6">
-              <h3 className="font-serif text-lg font-semibold mb-4">Deixe sua avaliação</h3>
+              <h3 className="font-display text-lg font-semibold mb-4">Deixe sua avaliação</h3>
               <form onSubmit={handleSubmitReview} className="space-y-4">
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1.5 block">Nota</label>

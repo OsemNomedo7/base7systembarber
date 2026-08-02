@@ -2,9 +2,10 @@
  * vendas por forma de pagamento, vendas por entrega/retirada e clientes que mais compram */
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Wallet, ClipboardList, Receipt } from "lucide-react";
+import { Wallet, ClipboardList, Receipt, CalendarCheck, CalendarX, UserX, Scissors } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from "recharts";
 import { useOrders } from "@/hooks/useOrders";
+import { useAppointments } from "@/hooks/useAppointments";
 import {
   aggregateSummary,
   aggregateSalesByPeriod,
@@ -13,6 +14,12 @@ import {
   aggregateTopProducts,
   aggregateTopCustomers,
 } from "@/lib/salesReports";
+import {
+  aggregateAppointmentSummary,
+  aggregateAppointmentsByPeriod,
+  aggregateTopServices,
+  aggregateProfessionalPerformance,
+} from "@/lib/appointmentReports";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +28,10 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } f
 
 const periodConfig = {
   faturamento: { label: "Faturamento", color: "hsl(var(--primary))" },
+} satisfies ChartConfig;
+
+const appointmentPeriodConfig = {
+  agendamentos: { label: "Agendamentos", color: "hsl(var(--primary))" },
 } satisfies ChartConfig;
 
 const paymentConfig = {
@@ -74,6 +85,18 @@ const AdminRelatorios = () => {
   const byDeliveryType = useMemo(() => aggregateByDeliveryType(orders), [orders]);
   const topProducts = useMemo(() => aggregateTopProducts(orders), [orders]);
   const topCustomers = useMemo(() => aggregateTopCustomers(orders), [orders]);
+
+  const { data: appointments = [], isLoading: isLoadingAppointments } = useAppointments({
+    dateFrom,
+    dateTo,
+  });
+  const appointmentSummary = useMemo(() => aggregateAppointmentSummary(appointments), [appointments]);
+  const appointmentsByPeriod = useMemo(
+    () => aggregateAppointmentsByPeriod(appointments, dateFrom, dateTo),
+    [appointments, dateFrom, dateTo]
+  );
+  const topServices = useMemo(() => aggregateTopServices(appointments), [appointments]);
+  const professionalPerformance = useMemo(() => aggregateProfessionalPerformance(appointments), [appointments]);
 
   return (
     <div className="space-y-6">
@@ -266,6 +289,143 @@ const AdminRelatorios = () => {
                       <TableRow>
                         <TableCell colSpan={3} className="text-center text-muted-foreground py-6">
                           Sem dados no período.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+        </>
+      )}
+
+      <h2 className="font-serif text-xl font-semibold pt-4">Agendamentos</h2>
+
+      {isLoadingAppointments ? (
+        <p className="text-muted-foreground text-sm">Carregando...</p>
+      ) : appointments.length === 0 ? (
+        <p className="text-muted-foreground text-sm py-12 text-center">
+          Nenhum agendamento encontrado no período selecionado.
+        </p>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Faturamento em serviços</CardTitle>
+                <Wallet size={18} className="text-primary" />
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-serif font-semibold">R$ {appointmentSummary.revenue.toFixed(2)}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Atendimentos concluídos</CardTitle>
+                <CalendarCheck size={18} className="text-primary" />
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-serif font-semibold">{appointmentSummary.concluded}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Cancelados</CardTitle>
+                <CalendarX size={18} className="text-primary" />
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-serif font-semibold">{appointmentSummary.cancelled}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Não compareceu</CardTitle>
+                <UserX size={18} className="text-primary" />
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-serif font-semibold">{appointmentSummary.noShow}</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base font-medium">Agendamentos por período</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer config={appointmentPeriodConfig} className="aspect-auto h-64 w-full">
+                <BarChart data={appointmentsByPeriod}>
+                  <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
+                  <XAxis dataKey="label" tickLine={false} axisLine={false} fontSize={12} />
+                  <YAxis tickLine={false} axisLine={false} fontSize={12} allowDecimals={false} width={40} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="agendamentos" fill="var(--color-agendamentos)" radius={4} />
+                </BarChart>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center gap-2">
+                <Scissors size={16} className="text-primary" />
+                <CardTitle className="text-base font-medium">Serviços mais realizados</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Serviço</TableHead>
+                      <TableHead>Qtd.</TableHead>
+                      <TableHead>Faturamento</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {topServices.map((s) => (
+                      <TableRow key={s.serviceId}>
+                        <TableCell className="font-medium">{s.name}</TableCell>
+                        <TableCell>{s.quantity}</TableCell>
+                        <TableCell>R$ {s.revenue.toFixed(2)}</TableCell>
+                      </TableRow>
+                    ))}
+                    {topServices.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-center text-muted-foreground py-6">
+                          Nenhum atendimento concluído no período.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base font-medium">Desempenho por profissional</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Profissional</TableHead>
+                      <TableHead>Atendimentos</TableHead>
+                      <TableHead>Faturamento</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {professionalPerformance.map((p) => (
+                      <TableRow key={p.professionalId}>
+                        <TableCell className="font-medium">{p.name}</TableCell>
+                        <TableCell>{p.concludedCount}</TableCell>
+                        <TableCell>R$ {p.revenue.toFixed(2)}</TableCell>
+                      </TableRow>
+                    ))}
+                    {professionalPerformance.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-center text-muted-foreground py-6">
+                          Nenhum atendimento concluído no período.
                         </TableCell>
                       </TableRow>
                     )}

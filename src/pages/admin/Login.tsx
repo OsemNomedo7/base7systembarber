@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import BrandWordmark from "@/components/BrandWordmark";
 
 const AdminLogin = () => {
   const { session, signIn } = useAuth();
@@ -31,12 +32,14 @@ const AdminLogin = () => {
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center px-4 section-rose">
+    <main className="min-h-screen flex flex-col items-center justify-center px-4 bg-muted/40">
       <Card className="w-full max-w-lg shadow-xl">
         <CardHeader className="items-center text-center">
-          <img src="/imagem/logo-base7web.png" alt="BASE7WEB System Moda" className="w-full max-w-[280px] h-auto mb-2" />
-          <CardTitle className="font-serif">Admin — BASE7WEB System Moda</CardTitle>
-          <CardDescription>Entre para gerenciar o site.</CardDescription>
+          <BrandWordmark className="text-2xl mb-2" />
+          <CardTitle className="font-serif">Painel administrativo</CardTitle>
+          <CardDescription>Entre para gerenciar o sistema.</CardDescription>
+          <CardDescription>Sistema Base 7 System Barber.</CardDescription>
+          <CardDescription>Desenvolvido Por Base 7 Web ®</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

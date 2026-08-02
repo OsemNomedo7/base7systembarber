@@ -1,287 +1,301 @@
-/* Página inicial - Hero Carrossel, produtos em destaque, sobre breve */
-import { useState, useEffect, useCallback } from "react";
+/* Home do site público - Hero, Sobre, Serviços (Razor Rail), Profissionais,
+ * Galeria, Avaliações, Produtos em destaque, Localização, CTA final. */
+import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Sparkles, Heart, Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { useReducedMotion } from "framer-motion";
+import { ArrowRight, MapPin, Clock, Phone } from "lucide-react";
 import { useProducts } from "@/hooks/useProducts";
+import { useServices } from "@/hooks/useServices";
+import { usePublicProfessionals } from "@/hooks/usePublicProfessionals";
+import { useTestimonials } from "@/hooks/useTestimonials";
 import { useSiteContent } from "@/hooks/useSiteContent";
-import type { HomeHeroSlide, HomeInstitutional } from "@/types/content";
+import { useWhatsappNumber } from "@/hooks/useWhatsappNumber";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import type { HomeHero, HomeAbout, BrandInfo } from "@/types/content";
+import type { Service } from "@/types/barber";
+import RevealOnScroll from "@/components/RevealOnScroll";
+import ServiceTicket from "@/components/ServiceTicket";
+import ProfessionalCard from "@/components/ProfessionalCard";
+import TestimonialCard from "@/components/TestimonialCard";
+import ProductCard from "@/components/ProductCard";
 
-const Index = () => {
-  const { data: products = [] } = useProducts();
-  const featuredProducts = products.slice(0, 4);
-  const { data: heroSlidesData } = useSiteContent<HomeHeroSlide[]>("home_hero_slides");
-  const heroSlides = heroSlidesData ?? [];
-  const { data: institutional } = useSiteContent<HomeInstitutional>("home_institutional");
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-
-  /* Autoplay do carrossel */
-  const goToSlide = useCallback((index: number) => {
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setCurrentSlide(index);
-      setIsTransitioning(false);
-    }, 400);
-  }, []);
-
-  const nextSlide = useCallback(() => {
-    goToSlide((currentSlide + 1) % heroSlides.length);
-  }, [currentSlide, goToSlide, heroSlides.length]);
-
-  const prevSlide = useCallback(() => {
-    goToSlide((currentSlide - 1 + heroSlides.length) % heroSlides.length);
-  }, [currentSlide, goToSlide, heroSlides.length]);
+/* Trilha de serviços: rolagem horizontal comum, sem "prender" o scroll da
+ * página. Passando o mouse por cima e girando a roda, o gesto vertical vira
+ * scroll horizontal só dentro da trilha (preventDefault precisa ser nativo -
+ * o `onWheel` do React é registrado como passivo e ignora preventDefault);
+ * tirando o mouse de cima, a página volta a rolar verticalmente normal. No
+ * touch, o swipe horizontal nativo já funciona sem nenhum listener extra. A
+ * barra de rolagem nativa fica escondida (some visualmente, o scroll continua
+ * funcionando por trás). */
+const ServicesRail = ({ services }: { services: Service[] }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
-    if (heroSlides.length === 0) return;
-    const timer = setInterval(nextSlide, 5000);
-    return () => clearInterval(timer);
-  }, [nextSlide, heroSlides.length]);
+    const el = containerRef.current;
+    if (!el) return;
 
-  const slide = heroSlides[currentSlide];
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      el.scrollLeft += e.deltaY;
+    };
 
-  if (!slide) {
-    return <main className="min-h-screen" />;
-  }
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      className={`flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 pl-[6vw] pr-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
+        shouldReduceMotion ? "" : "scroll-smooth"
+      }`}
+    >
+      {services.map((service, i) => (
+        <ServiceTicket key={service.id} service={service} index={i} className="snap-start" />
+      ))}
+    </div>
+  );
+};
+
+const Index = () => {
+  usePageTitle("Navalha Barbearia — Corte e barba com hora marcada");
+
+  const { data: hero } = useSiteContent<HomeHero>("home_hero");
+  const { data: about } = useSiteContent<HomeAbout>("home_about");
+  const { data: brand } = useSiteContent<BrandInfo>("brand_info");
+  const { data: gallery = [] } = useSiteContent<string[]>("gallery_images");
+  const { data: services = [] } = useServices(true);
+  const { data: professionals = [] } = usePublicProfessionals();
+  const { data: testimonials = [] } = useTestimonials();
+  const { data: products = [] } = useProducts();
+  const whatsappNumber = useWhatsappNumber();
+  const featuredProducts = products.slice(0, 4);
 
   return (
     <main>
-      {/* ===== HERO CARROSSEL ===== */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Imagem de fundo com transição */}
+      {/* ===== HERO ===== */}
+      <section className="relative min-h-screen flex items-end md:items-center overflow-hidden">
         <div className="absolute inset-0">
-          <img
-            key={currentSlide}
-            src={slide.image}
-            alt="BASE7WEB System Moda"
-            className={`w-full h-full object-cover transition-all duration-1000 ${
-              isTransitioning ? "scale-110 opacity-0" : "scale-100 opacity-100"
-            }`}
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-foreground/70 via-foreground/40 to-transparent" />
-          {/* Partículas decorativas */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {[...Array(6)].map((_, i) => (
-              <div
-                key={i}
-                className="absolute w-1 h-1 rounded-full bg-gold-light/30 animate-float"
-                style={{
-                  left: `${15 + i * 15}%`,
-                  top: `${20 + (i % 3) * 25}%`,
-                  animationDelay: `${i * 0.5}s`,
-                  animationDuration: `${3 + i * 0.5}s`,
-                }}
-              />
-            ))}
-          </div>
+          {hero?.image && (
+            <img src={hero.image} alt="" className="w-full h-full object-cover grayscale-[15%]" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/75 to-background/25 md:bg-gradient-to-r md:from-background md:via-background/70 md:to-background/10" />
         </div>
 
-        {/* Conteúdo */}
-        <div className="relative z-10 container mx-auto px-4 text-center md:text-left">
+        <div className="relative z-10 container mx-auto px-4 pb-24 pt-40 md:py-0">
           <div className="max-w-xl">
-            <p
-              className={`text-gold-light text-sm tracking-[0.3em] uppercase mb-4 transition-all duration-700 ${
-                isTransitioning ? "opacity-0 -translate-y-4" : "opacity-100 translate-y-0"
-              }`}
-            >
-              {slide.subtitle}
-            </p>
-            <h1
-              className={`font-serif text-4xl md:text-6xl lg:text-7xl font-bold text-background leading-tight mb-6 transition-all duration-700 delay-100 ${
-                isTransitioning ? "opacity-0 -translate-y-4" : "opacity-100 translate-y-0"
-              }`}
-            >
-              {slide.title}
+            {hero?.subtitle && (
+              <p className="font-mono text-xs tracking-[0.3em] uppercase text-primary mb-4">{hero.subtitle}</p>
+            )}
+            <h1 className="font-display text-5xl md:text-7xl font-black leading-[0.95] text-foreground mb-6">
+              {hero?.title}
               <br />
-              <span className="text-gradient-gold">{slide.highlight}</span>
+              <span className="text-primary">{hero?.highlight}</span>
             </h1>
-            <p
-              className={`text-background/80 text-base md:text-lg mb-8 leading-relaxed transition-all duration-700 delay-200 ${
-                isTransitioning ? "opacity-0 -translate-y-4" : "opacity-100 translate-y-0"
-              }`}
-            >
-              {slide.description}
-            </p>
-            <div
-              className={`flex flex-col sm:flex-row gap-4 justify-center md:justify-start transition-all duration-700 delay-300 ${
-                isTransitioning ? "opacity-0 translate-y-4" : "opacity-100 translate-y-0"
-              }`}
-            >
-              <div style={{ marginTop: "550px", display: "flex", justifyContent: "center", gap: "12px" }}>
-              <Link to={slide.ctaLink} className="btn-hero">
-                {slide.ctaLabel}
-                <ArrowRight size={16} className="ml-2" />
-              </Link>
-              {slide.ctaSecondaryLabel && slide.ctaSecondaryLink && (
-                <Link
-                  to={slide.ctaSecondaryLink}
-                  className="inline-flex items-center justify-center rounded-full px-8 py-3 text-sm font-medium border border-background/30 text-background hover:bg-background/10 transition-all duration-300"
-                >
-                  {slide.ctaSecondaryLabel}
-                </Link>
-              )}
-              </div>
-            </div>
+            {hero?.description && (
+              <p className="text-muted-foreground text-base md:text-lg mb-8 leading-relaxed max-w-md">
+                {hero.description}
+              </p>
+            )}
+            <Link to={hero?.ctaLink || "/agendar"} className="btn-hero">
+              {hero?.ctaLabel || "Agendar horário"}
+              <ArrowRight size={16} className="ml-2" />
+            </Link>
           </div>
-        </div>
-
-        {/* Controles do carrossel */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex items-center gap-4">
-          <button
-            onClick={prevSlide}
-            className="w-10 h-10 rounded-full bg-background/10 backdrop-blur-sm border border-background/20 flex items-center justify-center text-background hover:bg-background/20 transition-all duration-300 hover:scale-110"
-          >
-            <ChevronLeft size={18} />
-          </button>
-          <div className="flex gap-2">
-            {heroSlides.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => goToSlide(i)}
-                className={`h-1.5 rounded-full transition-all duration-500 ${
-                  i === currentSlide
-                    ? "w-8 bg-primary"
-                    : "w-3 bg-background/40 hover:bg-background/60"
-                }`}
-              />
-            ))}
-          </div>
-          <button
-            onClick={nextSlide}
-            className="w-10 h-10 rounded-full bg-background/10 backdrop-blur-sm border border-background/20 flex items-center justify-center text-background hover:bg-background/20 transition-all duration-300 hover:scale-110"
-          >
-            <ChevronRight size={18} />
-          </button>
-        </div>
-
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 right-8 z-20 hidden md:flex flex-col items-center gap-2">
-          <span className="text-background/50 text-[10px] tracking-widest uppercase rotate-90 origin-center translate-x-4">
-            scroll
-          </span>
-          <div className="w-px h-12 bg-gradient-to-b from-background/50 to-transparent animate-pulse" />
         </div>
       </section>
 
-      {/* ===== DESTAQUES PRODUTOS ===== */}
-      <section className="py-20 section-pink relative overflow-hidden">
-        {/* Decoração de fundo */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-rose-glow" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-rose-deep/15 rounded-full blur-3xl animate-rose-glow" style={{ animationDelay: "2s" }} />
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="absolute w-1.5 h-1.5 rounded-full bg-primary/25 animate-sparkle" style={{ top: `${15 + i * 20}%`, left: `${10 + i * 25}%`, animationDelay: `${i * 0.5}s` }} />
-        ))}
-
-        <div className="container mx-auto px-4 relative">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-4">
-              <Sparkles size={14} className="text-primary animate-pulse" />
-              <p className="text-primary text-xs tracking-[0.2em] uppercase font-medium">Novidades</p>
-            </div>
-            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground">
-              Peças que <span className="text-gradient-rose">combinam com você</span>
+      {/* ===== SOBRE (BREVE) ===== */}
+      <RevealOnScroll>
+        <section className="py-24">
+          <div className="container mx-auto px-4 max-w-2xl text-center">
+            <div className="rule-brass mx-auto mb-6" />
+            <h2 className="font-display text-3xl md:text-4xl font-semibold text-foreground mb-6">
+              {about?.title} <span className="text-primary">{about?.highlight}</span>
             </h2>
-            <div className="gold-divider mt-4" />
+            <p className="text-muted-foreground leading-relaxed">{about?.description}</p>
           </div>
+        </section>
+      </RevealOnScroll>
 
-          {/* Grid de produtos em destaque */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.map((product, index) => (
-              <Link
-                key={product.id}
-                to={`/produto/${product.id}`}
-                className="group card-hover bg-background/70 backdrop-blur-sm rounded-2xl border border-primary/10 overflow-hidden relative"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className="aspect-[4/5] overflow-hidden">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                </div>
-                <div className="p-4 text-center relative">
-                  <h3 className="font-serif text-sm font-semibold mb-1 group-hover:text-primary transition-colors duration-300 line-clamp-1">
-                    {product.name}
-                  </h3>
-                  <p className="text-sm text-primary font-medium">R$ {product.price.toFixed(2)}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ===== SERVIÇOS - RAZOR RAIL (parallax horizontal) ===== */}
+      {services.length > 0 && (
+        <section className="py-16 bg-card/40">
+          <RevealOnScroll className="container mx-auto px-4 mb-12">
+            <p className="font-mono text-xs tracking-[0.3em] uppercase text-primary mb-3">Serviços</p>
+            <h2 className="font-display text-3xl md:text-4xl font-semibold text-foreground max-w-lg">
+              Cada corte, uma comanda. Cada comanda, um compromisso.
+            </h2>
+          </RevealOnScroll>
+          <ServicesRail services={services} />
+        </section>
+      )}
 
-      {/* ===== INSTITUCIONAL ===== */}
-      <section className="py-20 relative overflow-hidden">
-        {/* Decoração rosa */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-rose/25 rounded-full blur-3xl animate-rose-glow" />
-        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl" />
-
-        <div className="container mx-auto px-4 relative">
-          <div className="max-w-3xl mx-auto text-center">
-            <div className="flex justify-center gap-1 mb-4">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  size={16}
-                  className="text-primary fill-primary animate-pulse"
-                  style={{ animationDelay: `${i * 0.2}s` }}
-                />
+      {/* ===== PROFISSIONAIS ===== */}
+      {professionals.length > 0 && (
+        <section className="py-24">
+          <div className="container mx-auto px-4">
+            <RevealOnScroll className="mb-12 max-w-lg">
+              <p className="font-mono text-xs tracking-[0.3em] uppercase text-primary mb-3">Time</p>
+              <h2 className="font-display text-3xl md:text-4xl font-semibold text-foreground">
+                Quem segura a navalha
+              </h2>
+            </RevealOnScroll>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+              {professionals.map((professional, i) => (
+                <RevealOnScroll key={professional.id} delay={i * 0.08} className={i % 2 === 1 ? "md:mt-10" : ""}>
+                  <ProfessionalCard professional={professional} />
+                </RevealOnScroll>
               ))}
             </div>
-            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-6">
-              {institutional?.title} <span className="text-gradient-rose">{institutional?.highlight}</span>
-            </h2>
-            <p className="text-muted-foreground leading-relaxed mb-8">{institutional?.description}</p>
-            <div className="flex justify-center gap-8">
-              {[
-                { icon: Heart, label: "Cuidado" },
-                { icon: Sparkles, label: "Qualidade" },
-                { icon: Star, label: "Confiança" },
-              ].map(({ icon: Icon, label }) => (
-                <div key={label} className="text-center group cursor-default">
-                  <div className="w-14 h-14 rounded-2xl bg-accent flex items-center justify-center mx-auto mb-2 group-hover:scale-110 group-hover:-translate-y-1 transition-all duration-500 group-hover:shadow-lg icon-glow">
-                    <Icon size={22} className="text-primary" />
+          </div>
+        </section>
+      )}
+
+      {/* ===== GALERIA ===== */}
+      {gallery.length > 0 && (
+        <section className="py-24 bg-card/40">
+          <div className="container mx-auto px-4">
+            <RevealOnScroll className="mb-12 max-w-lg">
+              <p className="font-mono text-xs tracking-[0.3em] uppercase text-primary mb-3">Experiência</p>
+              <h2 className="font-display text-3xl md:text-4xl font-semibold text-foreground">
+                Ambiente, detalhes e ofício
+              </h2>
+            </RevealOnScroll>
+            <RevealOnScroll delay={0.1}>
+              <div className="grid grid-cols-2 md:grid-cols-4 grid-rows-2 gap-2 h-[70vh] md:h-[80vh]">
+                {gallery.slice(0, 5).map((image, i) => (
+                  <div
+                    key={image}
+                    className={`overflow-hidden rounded-lg ${
+                      i === 0 ? "col-span-2 row-span-2" : "col-span-1 row-span-1"
+                    }`}
+                  >
+                    <img src={image} alt="" className="w-full h-full object-cover grayscale-[20%] hover:grayscale-0 hover:scale-105 transition-all duration-700" />
                   </div>
-                  <p className="text-sm font-medium">{label}</p>
-                </div>
+                ))}
+              </div>
+            </RevealOnScroll>
+          </div>
+        </section>
+      )}
+
+      {/* ===== AVALIAÇÕES ===== */}
+      {testimonials.length > 0 && (
+        <section className="py-24">
+          <div className="container mx-auto px-4">
+            <RevealOnScroll className="mb-12 max-w-lg">
+              <p className="font-mono text-xs tracking-[0.3em] uppercase text-primary mb-3">Depoimentos</p>
+              <h2 className="font-display text-3xl md:text-4xl font-semibold text-foreground">
+                Quem já sentou na cadeira
+              </h2>
+            </RevealOnScroll>
+          </div>
+          <div className="flex gap-5 overflow-x-auto snap-x snap-mandatory pb-4 px-4 md:px-[calc((100vw-1152px)/2)]">
+            {testimonials.map((testimonial) => (
+              <TestimonialCard key={testimonial.id} testimonial={testimonial} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ===== PRODUTOS EM DESTAQUE ===== */}
+      {featuredProducts.length > 0 && (
+        <section className="py-24 bg-card/40">
+          <div className="container mx-auto px-4">
+            <RevealOnScroll className="mb-12 flex items-end justify-between max-w-3xl">
+              <div>
+                <p className="font-mono text-xs tracking-[0.3em] uppercase text-primary mb-3">Loja</p>
+                <h2 className="font-display text-3xl md:text-4xl font-semibold text-foreground">
+                  Pra continuar o cuidado em casa
+                </h2>
+              </div>
+              <Link to="/produtos" className="hidden md:inline-flex items-center gap-1.5 text-sm text-primary hover:gap-2.5 transition-all">
+                Ver todos <ArrowRight size={14} />
+              </Link>
+            </RevealOnScroll>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+              {featuredProducts.map((product, i) => (
+                <RevealOnScroll key={product.id} delay={i * 0.06}>
+                  <ProductCard product={product} />
+                </RevealOnScroll>
               ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* ===== CTA LOJA ===== */}
-      <section className="py-20 section-rose relative overflow-hidden">
-        <div className="absolute inset-0 opacity-40">
-          <div className="absolute top-10 left-10 w-32 h-32 border border-primary/30 rounded-full animate-float" />
-          <div className="absolute bottom-10 right-10 w-24 h-24 border border-primary/20 rounded-full animate-float" style={{ animationDelay: "1s" }} />
-          <div className="absolute top-1/2 right-1/4 w-16 h-16 border border-primary/15 rounded-full animate-float" style={{ animationDelay: "2s" }} />
-        </div>
-        <div className="absolute top-0 left-1/4 w-40 h-40 bg-primary/5 rounded-full blur-3xl animate-rose-glow" />
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="absolute w-1 h-1 rounded-full bg-primary/30 animate-sparkle" style={{ top: `${30 + i * 20}%`, right: `${10 + i * 20}%`, animationDelay: `${i * 0.7}s` }} />
-        ))}
-
-        <div className="container mx-auto px-4 text-center relative">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-4">
-            <Sparkles size={14} className="text-primary animate-pulse" />
-            <p className="text-primary text-xs tracking-[0.2em] uppercase font-medium">Novidades</p>
+      {/* ===== LOCALIZAÇÃO ===== */}
+      <section className="py-24">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
+            <RevealOnScroll>
+              <p className="font-mono text-xs tracking-[0.3em] uppercase text-primary mb-3">Onde estamos</p>
+              <h2 className="font-display text-3xl md:text-4xl font-semibold text-foreground mb-8">
+                Localização e horário
+              </h2>
+              <div className="space-y-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-3">
+                  <MapPin size={18} className="text-primary shrink-0" />
+                  {brand?.address || "Em breve"}
+                </div>
+                {whatsappNumber && (
+                  <a
+                    href={`https://wa.me/${whatsappNumber}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 hover:text-primary transition-colors"
+                  >
+                    <Phone size={18} className="text-primary shrink-0" />
+                    Chamar no WhatsApp
+                  </a>
+                )}
+                <div className="flex items-start gap-3">
+                  <Clock size={18} className="text-primary shrink-0 mt-0.5" />
+                  <div>
+                    {(brand?.hoursLines?.length ? brand.hoursLines : ["Segunda a Sábado: 9h - 19h"]).map((line, i) => (
+                      <p key={i}>{line}</p>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </RevealOnScroll>
+            <RevealOnScroll delay={0.1}>
+              <div className="rounded-lg overflow-hidden border border-border h-[350px] md:h-[420px]">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d470476.40319508285!2d-47.658165977976886!3d-22.89134458307801!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94c8c61de74b6325%3A0x17e53a6a2178c22a!2sCampinas%2C%20SP!5e0!3m2!1spt-BR!2sbr!4v1771345973153!5m2!1spt-BR!2sbr"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Localização"
+                />
+              </div>
+            </RevealOnScroll>
           </div>
-          <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-4">
-            Moda & <span className="text-gradient-rose">Beleza</span>
-          </h2>
-          <div className="gold-divider mb-6" />
-          <p className="text-muted-foreground max-w-md mx-auto mb-8">
-            Descubra peças exclusivas e produtos de beleza selecionados especialmente para você.
-          </p>
-          <Link to="/loja" className="btn-hero group">
-            Explorar loja
-            <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
-          </Link>
         </div>
       </section>
+
+      {/* ===== CTA FINAL ===== */}
+      <RevealOnScroll>
+        <section className="py-28 bg-card/40 text-center">
+          <div className="container mx-auto px-4">
+            <h2 className="font-display text-3xl md:text-5xl font-semibold text-foreground mb-4">
+              Sua próxima navalha já tem hora marcada?
+            </h2>
+            <p className="text-muted-foreground max-w-md mx-auto mb-8">
+              Escolha o serviço, o barbeiro e o horário — em menos de um minuto.
+            </p>
+            <Link to="/agendar" className="btn-hero group">
+              Agendar horário
+              <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+        </section>
+      </RevealOnScroll>
     </main>
   );
 };

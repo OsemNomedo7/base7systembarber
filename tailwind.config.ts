@@ -16,8 +16,23 @@ export default {
       fontFamily: {
         serif: ["'Playfair Display'", "serif"],
         sans: ["'Inter'", "sans-serif"],
+        display: ["var(--font-display)"],
+        body: ["var(--font-body)"],
+        mono: ["var(--font-mono)", "monospace"],
       },
       colors: {
+        ink: "hsl(var(--ink))",
+        paper: {
+          DEFAULT: "hsl(var(--paper))",
+          dim: "hsl(var(--paper-dim))",
+        },
+        brass: {
+          DEFAULT: "hsl(var(--brass))",
+          light: "hsl(var(--brass-light))",
+          dark: "hsl(var(--brass-dark))",
+        },
+        oxblood: "hsl(var(--oxblood))",
+        steel: "hsl(var(--steel))",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -50,18 +65,6 @@ export default {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
-        },
-        rose: {
-          DEFAULT: "hsl(var(--rose))",
-          deep: "hsl(var(--rose-deep))",
-          soft: "hsl(var(--rose-soft))",
-        },
-        "pink-glow": "hsl(var(--pink-glow))",
-        nude: "hsl(var(--nude))",
-        gold: {
-          DEFAULT: "hsl(var(--gold))",
-          light: "hsl(var(--gold-light))",
-          dark: "hsl(var(--gold-dark))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",

@@ -1,60 +1,63 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&family=Fraunces:ital,wght@0,500;0,600;0,900;1,500&family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* BASE7WEB - SYSTEM MODA - Design System
-   Paleta: Rosé, Nude, Branco, Dourado
-   Tipografia: Playfair Display (títulos) + Inter (corpo)
+/* BASE7 SYSTEM BARBER - Design System
+   O admin (:root) mantém a paleta neutra original do painel administrativo.
+   O site público (.site-public, aplicada em PublicLayout) sobrescreve as
+   mesmas variáveis com a identidade da barbearia (charcoal + latão) - ver
+   plano da Fase 2. Isso evita repintar as ~25 páginas do admin sem motivo.
 */
 
 @layer base {
   :root {
-    /* Fundo com leve tom rosado */
-    --background: 340 30% 99%;
-    --foreground: 340 15% 18%;
+    --background: 0 0% 100%;
+    --foreground: 240 10% 15%;
 
-    --card: 340 40% 97%;
-    --card-foreground: 340 15% 18%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 15%;
 
-    --popover: 340 20% 99%;
-    --popover-foreground: 340 15% 18%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 15%;
 
-    /* Rosa como primary */
-    --primary: 340 55% 65%;
+    /* Latão como primary - também usado nos botões do admin */
+    --primary: 36 38% 48%;
     --primary-foreground: 0 0% 100%;
 
-    /* Nude rosado como secondary */
-    --secondary: 340 30% 93%;
-    --secondary-foreground: 340 15% 25%;
+    --secondary: 240 5% 95%;
+    --secondary-foreground: 240 10% 20%;
 
-    /* Rosa claro como muted */
-    --muted: 340 50% 95%;
-    --muted-foreground: 340 15% 45%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 5% 45%;
 
-    /* Rosé vibrante como accent */
-    --accent: 340 60% 92%;
-    --accent-foreground: 340 15% 18%;
+    --accent: 36 30% 94%;
+    --accent-foreground: 240 10% 15%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 340 25% 90%;
-    --input: 340 25% 90%;
-    --ring: 340 55% 65%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 36 38% 48%;
 
-    --radius: 1rem;
+    --radius: 0.75rem;
 
-    /* Custom tokens - mais rosas */
-    --rose: 340 55% 92%;
-    --rose-deep: 340 60% 80%;
-    --rose-soft: 340 40% 96%;
-    --pink-glow: 340 70% 88%;
-    --nude: 20 30% 93%;
-    --gold: 36 45% 60%;
-    --gold-light: 36 50% 75%;
-    --gold-dark: 36 40% 45%;
+    /* Tokens de marca (site público) */
+    --ink: 30 12% 7%;
+    --paper: 40 24% 90%;
+    --brass: 36 38% 55%;
+    --brass-light: 36 45% 68%;
+    --brass-dark: 34 40% 38%;
+    --oxblood: 350 55% 26%;
+    --steel: 200 4% 22%;
+    --paper-dim: 40 14% 60%;
+
+    /* Fontes - default = admin. Redefinidas dentro de .site-public abaixo. */
+    --font-display: 'Playfair Display', serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: ui-monospace, 'IBM Plex Mono', monospace;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -66,156 +69,91 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
-  .dark {
-    --background: 20 10% 10%;
-    --foreground: 20 20% 90%;
-    --card: 20 10% 14%;
-    --card-foreground: 20 20% 90%;
-    --popover: 20 10% 12%;
-    --popover-foreground: 20 20% 90%;
-    --primary: 36 45% 60%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 20 15% 18%;
-    --secondary-foreground: 20 20% 90%;
-    --muted: 20 10% 18%;
-    --muted-foreground: 20 15% 60%;
-    --accent: 340 20% 20%;
-    --accent-foreground: 20 20% 90%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 20 10% 20%;
-    --input: 20 10% 20%;
-    --ring: 36 45% 60%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-}
+  /* Identidade da barbearia - aplicada só dentro de PublicLayout (site público) */
+  .site-public {
+    --background: var(--ink);
+    --foreground: var(--paper);
 
-@layer base {
+    --card: 30 11% 10%;
+    --card-foreground: var(--paper);
+
+    --popover: 30 11% 9%;
+    --popover-foreground: var(--paper);
+
+    --primary: var(--brass);
+    --primary-foreground: var(--ink);
+
+    --secondary: 200 4% 16%;
+    --secondary-foreground: var(--paper);
+
+    --muted: 30 9% 13%;
+    --muted-foreground: var(--paper-dim);
+
+    --accent: 350 30% 16%;
+    --accent-foreground: var(--paper);
+
+    --border: 30 8% 20%;
+    --input: 30 8% 20%;
+    --ring: var(--brass);
+
+    --radius: 0.5rem;
+
+    --font-display: 'Fraunces', serif;
+    --font-body: 'Archivo', sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+    @apply bg-background text-foreground;
+    min-height: 100%;
+  }
+
   * {
     @apply border-border;
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
-    font-family: 'Inter', sans-serif;
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-display);
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 }
 
 @layer components {
-  /* Botão hero com gradiente rosa-dourado */
+  /* Botão principal - latão sólido, cantos discretos (var(--radius), sharp no site público) */
   .btn-hero {
-    @apply inline-flex items-center justify-center rounded-full px-8 py-3 text-sm font-medium
-           text-primary-foreground
+    @apply inline-flex items-center justify-center rounded-lg px-8 py-3 text-sm font-medium tracking-wide
+           bg-primary text-primary-foreground
            transition-all duration-300 ease-out
-           hover:shadow-lg hover:scale-105;
-    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--rose-deep)), hsl(var(--gold)));
-    box-shadow: 0 4px 20px hsl(var(--primary) / 0.35);
+           hover:shadow-lg hover:-translate-y-0.5;
   }
 
-  .btn-hero:hover {
-    box-shadow: 0 8px 30px hsl(var(--primary) / 0.45);
-  }
-
-  /* Card com hover suave rosado */
   .card-hover {
     @apply transition-all duration-300 ease-out;
   }
-
   .card-hover:hover {
-    @apply -translate-y-2;
-    box-shadow: 0 15px 40px hsl(var(--primary) / 0.12), 0 5px 15px hsl(var(--rose-deep) / 0.08);
+    @apply -translate-y-1;
+    box-shadow: 0 14px 32px hsl(var(--primary) / 0.15);
   }
 
-  /* Gradiente dourado para textos */
-  .text-gradient-gold {
-    background: linear-gradient(135deg, hsl(var(--gold-dark)), hsl(var(--gold)), hsl(var(--gold-light)));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  /* Fio fino de latão - divisor / decoração da "comanda" de serviço */
+  .rule-brass {
+    @apply w-16 h-px;
+    background: linear-gradient(90deg, hsl(var(--brass)), transparent);
   }
 
-  /* Gradiente rosa para textos */
-  .text-gradient-rose {
-    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--rose-deep)), hsl(var(--gold)));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  /* Hover das etiquetas de serviço na Razor Rail */
+  .ticket-hover {
+    @apply transition-all duration-300 ease-out border-transparent;
   }
-
-  /* Seção com fundo rosé */
-  .section-rose {
-    background: linear-gradient(135deg, hsl(var(--rose)), hsl(var(--rose-soft)));
-  }
-
-  /* Seção com fundo nude */
-  .section-nude {
-    background: linear-gradient(135deg, hsl(var(--nude)), hsl(var(--rose-soft)));
-  }
-
-  /* Seção rosa mais intensa */
-  .section-pink {
-    background: linear-gradient(135deg, hsl(var(--pink-glow)), hsl(var(--rose)));
-  }
-
-  /* Decoração dourada-rosa */
-  .gold-divider {
-    @apply w-20 h-0.5 mx-auto;
-    background: linear-gradient(90deg, transparent, hsl(var(--primary)), hsl(var(--gold)), hsl(var(--primary)), transparent);
-  }
-
-  /* Scroll suave global */
-  html {
-    scroll-behavior: smooth;
-  }
-
-  /* Shimmer rosa */
-  .shimmer {
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      hsl(var(--primary) / 0.1) 25%,
-      hsl(var(--gold-light) / 0.15) 50%,
-      hsl(var(--primary) / 0.1) 75%,
-      transparent 100%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 3s ease-in-out infinite;
-  }
-
-  /* Glass effect rosado */
-  .glass {
-    background: hsl(var(--rose-soft) / 0.7);
-    backdrop-filter: blur(16px);
-    border: 1px solid hsl(var(--primary) / 0.1);
-  }
-
-  /* Pétala decorativa */
-  .petal {
-    @apply absolute rounded-full opacity-20;
-    background: radial-gradient(ellipse, hsl(var(--primary) / 0.3), transparent);
-  }
-
-  /* Glow rosa nos ícones */
-  .icon-glow {
-    @apply relative;
-  }
-  .icon-glow::after {
-    content: '';
-    @apply absolute inset-0 rounded-full;
-    background: radial-gradient(circle, hsl(var(--primary) / 0.15), transparent);
-    filter: blur(8px);
-    z-index: -1;
+  .ticket-hover:hover {
+    border-color: hsl(var(--brass) / 0.5);
+    transform: translateY(-4px);
   }
 }
 
@@ -253,56 +191,14 @@
   .animate-float {
     animation: float 3s ease-in-out infinite;
   }
+}
 
-  @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-  }
-
-  @keyframes glow-pulse {
-    0%, 100% { box-shadow: 0 0 20px hsl(var(--primary) / 0.1); }
-    50% { box-shadow: 0 0 40px hsl(var(--primary) / 0.3); }
-  }
-
-  .animate-glow {
-    animation: glow-pulse 3s ease-in-out infinite;
-  }
-
-  @keyframes slide-up-fade {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .animate-slide-up {
-    animation: slide-up-fade 0.6s ease-out forwards;
-  }
-
-  @keyframes petal-fall {
-    0% { transform: translateY(-10%) rotate(0deg); opacity: 0; }
-    10% { opacity: 0.6; }
-    90% { opacity: 0.3; }
-    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
-  }
-
-  .animate-petal {
-    animation: petal-fall linear infinite;
-  }
-
-  @keyframes rose-glow {
-    0%, 100% { opacity: 0.3; transform: scale(1); }
-    50% { opacity: 0.6; transform: scale(1.1); }
-  }
-
-  .animate-rose-glow {
-    animation: rose-glow 4s ease-in-out infinite;
-  }
-
-  @keyframes sparkle {
-    0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
-    50% { opacity: 1; transform: scale(1) rotate(180deg); }
-  }
-
-  .animate-sparkle {
-    animation: sparkle 2s ease-in-out infinite;
+/* Respeita a preferência do usuário por menos movimento (seção 33/45 do prompt) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }

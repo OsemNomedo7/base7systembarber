@@ -1,9 +1,10 @@
 /* Resumo rápido do admin - números básicos, faturamento e visitas */
 import { Link } from "react-router-dom";
-import { ClipboardList, ShoppingBag, Eye, Wallet, MessageSquareText, Star } from "lucide-react";
+import { ClipboardList, ShoppingBag, Eye, Wallet, MessageSquareText, Star, CalendarClock } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { useOrders } from "@/hooks/useOrders";
 import { useProducts } from "@/hooks/useProducts";
+import { useAppointments } from "@/hooks/useAppointments";
 import { useAnalyticsEvents, aggregateVisitsByDay } from "@/hooks/useAnalytics";
 import { useUnreadChatCount } from "@/hooks/useAdminChat";
 import { useAdminReviews } from "@/hooks/useProductReviews";
@@ -21,9 +22,18 @@ const AdminDashboard = () => {
   const unreadChatCount = useUnreadChatCount();
   const { data: reviews = [] } = useAdminReviews();
   const pendingReviewsCount = reviews.filter((r) => r.status === "pendente").length;
+  const { data: upcomingAppointments = [] } = useAppointments({ dateFrom: new Date().toISOString().slice(0, 10) });
 
   const today = new Date().toISOString().slice(0, 10);
   const visitsToday = events.filter((e) => e.event_type === "page_view" && e.created_at.startsWith(today)).length;
+
+  const activeAppointments = upcomingAppointments.filter(
+    (a) => a.status !== "cancelado" && a.status !== "nao_compareceu"
+  );
+  const appointmentsToday = activeAppointments.filter((a) => a.starts_at.startsWith(today)).length;
+  const nextAppointments = activeAppointments
+    .filter((a) => new Date(a.starts_at) >= new Date())
+    .slice(0, 5);
 
   const monthStart = new Date();
   monthStart.setDate(1);
@@ -39,6 +49,12 @@ const AdminDashboard = () => {
   const visitsByDay = aggregateVisitsByDay(events).slice(-7);
 
   const cards = [
+    {
+      label: "Agendamentos hoje",
+      value: appointmentsToday,
+      icon: CalendarClock,
+      link: "/admin/agenda",
+    },
     {
       label: "Pedidos novos",
       value: orders.filter((o) => o.status === "novo").length,
@@ -97,7 +113,44 @@ const AdminDashboard = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center gap-2">
+            <CalendarClock size={18} className="text-primary" />
+            <CardTitle className="text-base font-medium">Próximos agendamentos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {nextAppointments.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">Nenhum agendamento futuro.</p>
+            ) : (
+              <div className="space-y-3">
+                {nextAppointments.map((a) => (
+                  <Link
+                    key={a.id}
+                    to="/admin/agenda"
+                    className="flex items-center justify-between text-sm p-2 -mx-2 rounded-lg hover:bg-muted transition-colors"
+                  >
+                    <div>
+                      <p className="font-medium">{a.customer_name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {a.service_name} com {a.professional_name}
+                      </p>
+                    </div>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                      {new Date(a.starts_at).toLocaleString("pt-BR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader className="flex flex-row items-center gap-2">
             <ClipboardList size={18} className="text-primary" />
