@@ -9,6 +9,7 @@ import { useAvailableSlots } from "@/hooks/useAvailableSlots";
 import { useProfessionals } from "@/hooks/useProfessionals";
 import { useProfessionalServiceIds } from "@/hooks/useProfessional";
 import { useServices } from "@/hooks/useServices";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { Appointment, AppointmentStatus } from "@/types/barber";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -218,6 +219,7 @@ const WeekView = ({
 }) => {
   const today = todayLocalDate();
   const days = Array.from({ length: 7 }, (_, i) => addDaysISO(weekStart, i));
+  const isMobile = useIsMobile();
 
   const byDay = useMemo(() => {
     const map = new Map<string, Appointment[]>();
@@ -230,52 +232,59 @@ const WeekView = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [appointments, weekStart]);
 
+  /* No mobile, 7 colunas lado a lado não cabem de forma legível - cada dia
+   * vira um bloco empilhado, ocupando a largura toda (mesma estrutura de
+   * dado, só o layout muda). No desktop mantém a grade semanal de sempre. */
+  const dayCard = (day: string) => {
+    const isToday = day === today;
+    const dayAppointments = byDay.get(day) ?? [];
+    return (
+      <div key={day} className="rounded-lg border border-border bg-background flex flex-col">
+        <div
+          className={`px-2 py-2 font-medium border-b border-border text-center md:text-xs ${
+            isToday ? "text-primary bg-primary/5" : ""
+          }`}
+        >
+          {new Date(`${day}T00:00:00`).toLocaleDateString("pt-BR", { weekday: isMobile ? "long" : "short" })}
+          <span className="block text-muted-foreground font-normal">
+            {new Date(`${day}T00:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
+          </span>
+        </div>
+        <div className="flex-1 p-1.5 space-y-1.5 md:min-h-[120px]">
+          {dayAppointments.map((appointment) => (
+            <div key={appointment.id} className="rounded border border-border p-2 md:p-1.5 text-sm md:text-[11px] space-y-1">
+              <div className="flex items-center justify-between gap-1">
+                <span className="font-mono">{formatTime(appointment.starts_at)}</span>
+                <RescheduleButton appointment={appointment} compact={!isMobile} />
+              </div>
+              <p className="font-medium truncate" title={appointment.customer_name}>
+                {appointment.customer_name}
+              </p>
+              <p className="text-muted-foreground truncate" title={`${appointment.service_name} · ${appointment.professional_name}`}>
+                {appointment.service_name} · {appointment.professional_name}
+              </p>
+              <AppointmentStatusSelect
+                value={appointment.status}
+                onChange={(newStatus) => onStatusChange(appointment.id, newStatus)}
+                triggerClassName={isMobile ? "w-full h-8 text-xs" : "w-full h-6 text-[10px] px-1.5"}
+              />
+            </div>
+          ))}
+          {dayAppointments.length === 0 && (
+            <p className="text-sm md:text-[11px] text-muted-foreground text-center py-6">Nenhum agendamento.</p>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  if (isMobile) {
+    return <div className="space-y-3">{days.map(dayCard)}</div>;
+  }
+
   return (
     <div className="overflow-x-auto">
-      <div className="grid grid-cols-7 gap-2 min-w-[980px]">
-        {days.map((day) => {
-          const isToday = day === today;
-          const dayAppointments = byDay.get(day) ?? [];
-          return (
-            <div key={day} className="rounded-lg border border-border bg-background flex flex-col">
-              <div
-                className={`px-2 py-2 text-xs font-medium border-b border-border text-center ${
-                  isToday ? "text-primary bg-primary/5" : ""
-                }`}
-              >
-                {new Date(`${day}T00:00:00`).toLocaleDateString("pt-BR", { weekday: "short" })}
-                <span className="block text-muted-foreground font-normal">
-                  {new Date(`${day}T00:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
-                </span>
-              </div>
-              <div className="flex-1 p-1.5 space-y-1.5 min-h-[120px]">
-                {dayAppointments.map((appointment) => (
-                  <div key={appointment.id} className="rounded border border-border p-1.5 text-[11px] space-y-1">
-                    <div className="flex items-center justify-between gap-1">
-                      <span className="font-mono">{formatTime(appointment.starts_at)}</span>
-                      <RescheduleButton appointment={appointment} compact />
-                    </div>
-                    <p className="font-medium truncate" title={appointment.customer_name}>
-                      {appointment.customer_name}
-                    </p>
-                    <p className="text-muted-foreground truncate" title={`${appointment.service_name} · ${appointment.professional_name}`}>
-                      {appointment.service_name} · {appointment.professional_name}
-                    </p>
-                    <AppointmentStatusSelect
-                      value={appointment.status}
-                      onChange={(newStatus) => onStatusChange(appointment.id, newStatus)}
-                      triggerClassName="w-full h-6 text-[10px] px-1.5"
-                    />
-                  </div>
-                ))}
-                {dayAppointments.length === 0 && (
-                  <p className="text-[11px] text-muted-foreground text-center py-6">—</p>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      <div className="grid grid-cols-7 gap-2 min-w-[980px]">{days.map(dayCard)}</div>
     </div>
   );
 };

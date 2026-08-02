@@ -1,5 +1,9 @@
-/* Layout do painel admin - sidebar de navegação + área de conteúdo */
-import { NavLink, Outlet } from "react-router-dom";
+/* Layout do painel admin - sidebar de navegação + área de conteúdo.
+ * No mobile (<768px) a sidebar vira um drawer (menu hambúrguer), já que uma
+ * barbearia real é gerenciada do celular boa parte do tempo (confirmar
+ * agendamento, ver a agenda do dia etc.) - ver seção "melhorias mobile". */
+import { useEffect, useState } from "react";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   CalendarDays,
@@ -18,6 +22,8 @@ import {
   MessageSquareText,
   Star,
   LogOut,
+  Menu,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUnreadChatCount } from "@/hooks/useAdminChat";
@@ -25,6 +31,7 @@ import { useAdminReviews } from "@/hooks/useProductReviews";
 import { useAdminTestimonials } from "@/hooks/useTestimonials";
 import { Button } from "@/components/ui/button";
 import BrandWordmark from "@/components/BrandWordmark";
+import { cn } from "@/lib/utils";
 
 const navItems = [
   { label: "Dashboard", path: "/admin", icon: LayoutDashboard, end: true },
@@ -54,13 +61,44 @@ const AdminLayout = () => {
     reviews.filter((r) => r.status === "pendente").length +
     testimonials.filter((t) => t.status === "pendente").length;
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
+
+  /* Fecha o drawer sempre que a rota muda (navegar por um item do menu, ou
+   * usar voltar/avançar do navegador) - sem isso, ele ficaria aberto por
+   * cima da página seguinte no mobile. */
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
+
   return (
     <div className="min-h-screen flex bg-muted/20">
-      <aside className="w-60 shrink-0 border-r border-border bg-background flex flex-col">
-        <div className="flex items-center justify-center p-4 border-b border-border">
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden
+        />
+      )}
+
+      <aside
+        className={cn(
+          "w-60 shrink-0 border-r border-border bg-background flex flex-col",
+          "fixed inset-y-0 left-0 z-50 transition-transform duration-300 md:static md:translate-x-0",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <div className="flex items-center justify-between gap-2 p-4 border-b border-border">
           <BrandWordmark className="text-xl" />
+          <button
+            className="md:hidden p-1 text-muted-foreground hover:text-foreground"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Fechar menu"
+          >
+            <X size={20} />
+          </button>
         </div>
-        <nav className="flex-1 p-3 space-y-1">
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {navItems.map(({ label, path, icon: Icon, end }) => (
             <NavLink
               key={path}
@@ -96,11 +134,24 @@ const AdminLayout = () => {
           </Button>
         </div>
       </aside>
-      <main className="flex-1 relative overflow-y-auto">
-        <div className="relative p-8">
-          <Outlet />
+
+      <div className="flex-1 flex flex-col min-w-0">
+        <div className="md:hidden flex items-center justify-between px-4 h-14 border-b border-border bg-background sticky top-0 z-30 shrink-0">
+          <BrandWordmark className="text-lg" />
+          <button
+            className="p-1.5 text-foreground"
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Abrir menu"
+          >
+            <Menu size={22} />
+          </button>
         </div>
-      </main>
+        <main className="flex-1 relative overflow-y-auto">
+          <div className="relative p-4 md:p-8">
+            <Outlet />
+          </div>
+        </main>
+      </div>
     </div>
   );
 };
