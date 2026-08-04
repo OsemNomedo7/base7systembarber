@@ -8,13 +8,30 @@
  * padrão fica ligado - só o dono do projeto consegue disparar isso). */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+// De propósito NÃO inclui focusnfe_credentials/mercadopago_credentials: são
+// tokens/segredos de API, não dados de negócio - duplicá-los num snapshot
+// de backup só aumenta a superfície de risco se o arquivo vazar algum dia.
 const TABLES = [
   "products",
   "site_content",
   "orders",
-  "analytics_events",
+  "customers",
+  "customer_addresses",
+  "appointments",
+  "services",
+  "professionals",
+  "professional_services",
+  "professional_schedules",
+  "professional_time_off",
+  "product_stock",
+  "product_reviews",
+  "testimonials",
+  "delivery_methods",
+  "delivery_method_areas",
   "chat_conversations",
   "chat_messages",
+  "analytics_events",
+  "payment_webhook_events",
 ] as const;
 
 async function pingCareBackup(): Promise<void> {

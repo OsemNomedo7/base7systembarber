@@ -1,4 +1,4 @@
-project_id = "mxqkqestmwwofcuovzmo"
+project_id = "psnebcbluanimlvivykc"
 
 # O Mercado Pago chama esta função diretamente (sem token do Supabase), então a
 # verificação de JWT padrão precisa ficar desligada só aqui. A segurança dessa
