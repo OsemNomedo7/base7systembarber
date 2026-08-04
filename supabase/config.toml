@@ -5,3 +5,7 @@ project_id = "mxqkqestmwwofcuovzmo"
 # função vem da validação manual da assinatura HMAC (x-signature) dentro dela.
 [functions.mercadopago-webhook]
 verify_jwt = false
+
+# Chamada pelo BASE7 CARE (monitoramento externo) sem token do Supabase.
+[functions.health]
+verify_jwt = false

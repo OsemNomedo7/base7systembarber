@@ -1,0 +1,15 @@
+name: Backup diário
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Rodar export de backup (Supabase Edge Function)
+        run: |
+          curl -sf -X POST "${{ vars.SUPABASE_URL }}/functions/v1/backup-export" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"

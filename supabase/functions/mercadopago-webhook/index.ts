@@ -29,6 +29,20 @@ function timingSafeEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
+/* Avisa o BASE7 CARE (monitoramento externo) que um webhook real e assinado
+ * corretamente foi recebido - padrão "dead man's snitch" (o CARE não
+ * consegue "puxar" webhooks, só sabe que estão vivos por esse aviso). Nunca
+ * deve derrubar o processamento do webhook em si: erro aqui só vira log. */
+async function pingCareWebhook(): Promise<void> {
+  const url = Deno.env.get("CARE_WEBHOOK_INGEST_URL");
+  if (!url) return;
+  try {
+    await fetch(url, { method: "POST" });
+  } catch (err) {
+    console.error("Falha ao avisar o BASE7 CARE do webhook:", err);
+  }
+}
+
 /* Status possíveis de uma Order na API Orders do Mercado Pago:
  * created/processing/action_required = ainda em andamento; processed = pago;
  * failed = recusado; cancelled/expired = nunca foi pago e não vai mais;
@@ -116,6 +130,7 @@ Deno.serve(async (req) => {
 
     if (dedupError) {
       // violação de unicidade = já processado antes; responde 200 sem reprocessar
+      await pingCareWebhook();
       return new Response("ok", { status: 200 });
     }
 
@@ -127,6 +142,7 @@ Deno.serve(async (req) => {
       })
       .eq("mp_payment_id", String(dataId));
 
+    await pingCareWebhook();
     return new Response("ok", { status: 200 });
   } catch (err) {
     console.error("Erro inesperado no webhook:", err);
